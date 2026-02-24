@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TCM CLI — Autonomous agent for Traditional Chinese Medicine</title>
+  <meta name="description" content="TCM CLI: an autonomous agent for Traditional Chinese Medicine research and discovery. Ask in natural language. Plans, executes tools, validates, and returns data-backed conclusions." />
+  <meta property="og:title" content="TCM CLI — Traditional Chinese Medicine research agent" />
+  <meta property="og:description" content="Ask questions in natural language. tcm-cli plans the analysis, selects tools, executes them, validates results, and returns data-backed conclusions." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/docs/assets/og.svg" />
+  <link rel="icon" href="/docs/assets/favicon.svg" />
+  <link rel="stylesheet" href="/docs/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container row between center">
+      <a class="brand" href="#top" aria-label="TCM CLI home">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="2" y="2" width="20" height="20" rx="4" fill="#c8a85c"/>
+          <path d="M7 8h10M7 12h7M7 16h10" stroke="#0b0b0b" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span>TCM&nbsp;CLI</span>
+      </a>
+      <nav class="nav">
+        <a href="#install">Install</a>
+        <a href="#examples">Examples</a>
+        <a href="#features">Features</a>
+        <a href="#faq">FAQ</a>
+        <a class="button ghost" href="https://github.com/tcm-cli/tcm-cli" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container">
+        <h1>Traditional Chinese Medicine research — from question to answer</h1>
+        <p class="lead">Ask in natural language. <strong>tcm-cli</strong> plans the analysis, selects the right tools, executes them, validates results, and returns <em>data-backed</em> conclusions.</p>
+        <div class="cta row wrap gap">
+          <a class="button primary" href="#install">Install tcm-cli</a>
+          <a class="button" href="#examples">See examples</a>
+        </div>
+        <div class="terminal-card">
+          <div class="terminal-bar"><span></span><span></span><span></span></div>
+<pre><code>$ tcm "What herbs are used for Spleen Qi deficiency?"
+▌ planning... executing... synthesizing...
+• Core herbs: 党参、人参、白术、茯苓、黄芪
+• Actions: 益气健脾，运化失司 → 脾气虚
+• Evidence: 12 RCTs (2018–2025), 3 meta-analyses
+</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="install" class="section install">
+      <div class="container">
+        <h2>Install</h2>
+        <p>Pick one of the options below. Requires Python 3.10+.</p>
+        <div class="cards grid-3">
+          <div class="card">
+            <h3>Quick install</h3>
+            <p>One-liner to get started fast.</p>
+            <div class="code">
+              <button class="copy" data-copy="curl -fsSL https://raw.githubusercontent.com/tcm-cli/tcm-cli/main/install.sh | bash">Copy</button>
+<pre><code>curl -fsSL https://raw.githubusercontent.com/tcm-cli/tcm-cli/main/install.sh | bash</code></pre>
+            </div>
+          </div>
+          <div class="card">
+            <h3>pipx (recommended)</h3>
+            <p>Installs in an isolated environment.</p>
+            <div class="code">
+              <button class="copy" data-copy="pipx install tcm-cli">Copy</button>
+<pre><code>pipx install tcm-cli</code></pre>
+            </div>
+            <div class="code">
+              <button class="copy" data-copy="tcm setup">Copy</button>
+<pre><code>tcm setup   # configure API keys and run health check</code></pre>
+            </div>
+          </div>
+          <div class="card">
+            <h3>pip</h3>
+            <p>Or include optional scientific stacks.</p>
+            <div class="code">
+              <button class="copy" data-copy="pip install tcm-cli">Copy</button>
+<pre><code>pip install tcm-cli</code></pre>
+            </div>
+            <div class="code">
+              <button class="copy" data-copy="pip install \"tcm-cli[all]\"">Copy</button>
+<pre><code>pip install "tcm-cli[all]"</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <details class="tip">
+          <summary>Authentication</summary>
+<pre><code># Interactive (recommended)
+tcm setup
+
+# Or set directly
+export ANTHROPIC_API_KEY="sk-ant-..."
+
+# Non-interactive
+tcm setup --api-key sk-ant-api03-...
+</code></pre>
+        </details>
+      </div>
+    </section>
+
+    <section id="examples" class="section">
+      <div class="container">
+        <h2>Quick examples</h2>
+        <div class="cards grid-2">
+          <div class="card">
+            <h3>Herb lookup</h3>
+<pre><code>$ tcm "Tell me about 黄芪 (Astragalus) — properties, compounds, and clinical evidence"</code></pre>
+          </div>
+          <div class="card">
+            <h3>Formula analysis</h3>
+<pre><code>$ tcm "Analyze the composition of 四君子汤 using the 君臣佐使 framework"</code></pre>
+          </div>
+          <div class="card">
+            <h3>Syndrome differentiation</h3>
+<pre><code>$ tcm "Patient has fatigue, loose stools, poor appetite, pale tongue. What TCM syndrome?"</code></pre>
+          </div>
+          <div class="card">
+            <h3>Network pharmacology</h3>
+<pre><code>$ tcm "Build a network pharmacology analysis for 补中益气汤 against diabetes targets"</code></pre>
+          </div>
+          <div class="card">
+            <h3>Safety check</h3>
+<pre><code>$ tcm "Check interactions between 人参, 藜芦, and Warfarin"</code></pre>
+          </div>
+          <div class="card">
+            <h3>Data management</h3>
+<pre><code>$ tcm data pull tcmsp
+tcm data status</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="section alt">
+      <div class="container">
+        <h2>Why tcm?</h2>
+        <div class="feature-grid">
+          <article>
+            <h3>30+ TCM research tools</h3>
+            <p>Herb lookup, formula analysis, syndrome differentiation, network pharmacology, safety checks, literature search, and more.</p>
+          </article>
+          <article>
+            <h3>Claude-powered reasoning</h3>
+            <p>Built on the Anthropic API. Plans multi-step research workflows, calls tools, and synthesizes findings.</p>
+          </article>
+          <article>
+            <h3>Bilingual</h3>
+            <p>Full support for Chinese (中文) and English terminology.</p>
+          </article>
+          <article>
+            <h3>10+ database APIs</h3>
+            <p>PubMed, TCMSP, UniProt, STRING, KEGG, ClinicalTrials.gov, Open Targets — no setup required.</p>
+          </article>
+          <article>
+            <h3>Research UX</h3>
+            <p>Interactive terminal with @mentions, slash commands, session export, and clipboard support.</p>
+          </article>
+          <article>
+            <h3>Open source</h3>
+            <p>MIT licensed. Contributions welcome.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="section">
+      <div class="container">
+        <h2>FAQ</h2>
+        <details>
+          <summary>What models does tcm-cli support?</summary>
+          <p>Anthropic Claude by default. You can list and switch models via <code>tcm model list</code> and <code>tcm model set ...</code>.</p>
+        </details>
+        <details>
+          <summary>Do I need to download datasets?</summary>
+          <p>No. tcm works with remote APIs out of the box. Local datasets are optional and can speed up heavy analysis.</p>
+        </details>
+        <details>
+          <summary>Where do I report issues?</summary>
+          <p>Open an issue on GitHub: <a href="https://github.com/tcm-cli/tcm-cli" target="_blank" rel="noopener">tcm-cli/tcm-cli</a>.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container row between wrap gap">
+      <p>© <span id="year"></span> TCM-CLI Contributors — MIT License</p>
+      <p>
+        <a href="https://github.com/tcm-cli/tcm-cli" target="_blank" rel="noopener">GitHub</a>
+        <span class="sep">•</span>
+        <a href="https://pypi.org/project/tcm-cli/" target="_blank" rel="noopener">PyPI</a>
+        <span class="sep">•</span>
+        <a href="https://github.com/tcm-cli/tcm-cli#readme" target="_blank" rel="noopener">Documentation</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="/docs/script.js"></script>
+</body>
+</html>

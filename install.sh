@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# tcm-cli — One-liner installer
+# Usage: curl -fsSL https://raw.githubusercontent.com/tcm-cli/tcm-cli/main/install.sh | bash
+set -euo pipefail
+
+PACKAGE="tcm-cli"
+MIN_PYTHON="3.10"
+
+info()  { printf '\033[0;36m%s\033[0m\n' "$*"; }
+ok()    { printf '\033[0;32m%s\033[0m\n' "$*"; }
+warn()  { printf '\033[0;33m%s\033[0m\n' "$*" >&2; }
+fail()  { printf '\033[0;31mError: %s\033[0m\n' "$*" >&2; exit 1; }
+
+# ── Detect Python ──────────────────────────────────────────────
+
+PYTHON=""
+for candidate in python3 python; do
+    if command -v "$candidate" >/dev/null 2>&1; then
+        PYTHON="$candidate"
+        break
+    fi
+done
+[ -n "$PYTHON" ] || fail "Python not found. Install Python ${MIN_PYTHON}+ and try again."
+
+PY_VERSION=$("$PYTHON" -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+PY_MAJOR=$("$PYTHON" -c "import sys; print(sys.version_info.major)")
+PY_MINOR=$("$PYTHON" -c "import sys; print(sys.version_info.minor)")
+
+if [ "$PY_MAJOR" -lt 3 ] || { [ "$PY_MAJOR" -eq 3 ] && [ "$PY_MINOR" -lt 10 ]; }; then
+    fail "Python ${MIN_PYTHON}+ required (found ${PY_VERSION})"
+fi
+ok "Found Python ${PY_VERSION}"
+
+# ── Detect OS ──────────────────────────────────────────────────
+
+OS="$(uname -s)"
+case "$OS" in
+    Darwin) info "Detected macOS" ;;
+    Linux)  info "Detected Linux" ;;
+    *)      warn "Unsupported OS: $OS — installation may still work" ;;
+esac
+
+# ── Install package ────────────────────────────────────────────
+
+if command -v pipx >/dev/null 2>&1; then
+    info "Installing ${PACKAGE} via pipx..."
+    pipx install "$PACKAGE" || pipx upgrade "$PACKAGE"
+    ok "Installed with pipx"
+elif command -v uv >/dev/null 2>&1; then
+    info "Installing ${PACKAGE} via uv..."
+    uv tool install "$PACKAGE" || uv tool upgrade "$PACKAGE"
+    ok "Installed with uv"
+else
+    warn "pipx/uv not found — falling back to pip install --user"
+    "$PYTHON" -m pip install --user --upgrade "$PACKAGE"
+    ok "Installed with pip"
+
+    USER_BIN=$("$PYTHON" -m site --user-base)/bin
+    if ! echo "$PATH" | tr ':' '\n' | grep -qx "$USER_BIN"; then
+        warn ""
+        warn "Add this to your shell profile (~/.bashrc, ~/.zshrc, etc.):"
+        warn "  export PATH=\"${USER_BIN}:\$PATH\""
+        warn ""
+    fi
+fi
+
+# ── Verify tcm is available ────────────────────────────────────
+
+if ! command -v tcm >/dev/null 2>&1; then
+    warn "'tcm' not found on PATH. You may need to restart your shell."
+    warn "Then run: tcm setup"
+    exit 0
+fi
+
+ok "tcm $(tcm version 2>/dev/null || echo '(installed)')"
+
+# ── Run setup wizard ───────────────────────────────────────────
+
+info ""
+info "Running setup wizard..."
+info ""
+tcm setup
