@@ -18,7 +18,7 @@ Ask questions in natural language. tcm-cli plans the analysis, selects the right
 ### Quick install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/tcm-cli/tcm-cli/main/install.sh | bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/tcm-cli/tcm-cli/HEAD/install.sh)"
 ```
 
 ### Manual install
