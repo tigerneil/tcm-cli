@@ -1,5 +1,7 @@
 # tcm-cli
 
+![tcm-cli screenshot](docs/assets/tcm-cli.png)
+
 An autonomous agent for Traditional Chinese Medicine research and discovery.
 
 Ask questions in natural language. tcm-cli plans the analysis, selects the right tools, executes them, validates results, and returns data-backed conclusions.
