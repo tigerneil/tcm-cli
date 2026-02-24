@@ -181,19 +181,33 @@ tcm model show              # Show current model
 
 ### Local Datasets
 
-Without local data, tcm works via database APIs and built-in knowledge. To boost accuracy and offline support, pull datasets:
+Without local data, tcm works via database APIs and built-in knowledge. To boost accuracy and offline support, install local datasets:
 
 ```bash
+tcm data pull herbs      # Install bundled herb monograph data (instant)
+tcm data pull formulas   # Install bundled classical formula data (instant)
 tcm data pull tcmsp      # TCMSP — herbs, compounds, targets (~50 MB)
 tcm data pull tcmid      # TCMID — herb-compound-disease (~30 MB)
-tcm data pull herbs      # Chinese Pharmacopoeia herb monographs (~5 MB)
-tcm data pull formulas   # Classical formula database (~3 MB)
 tcm data pull batman     # BATMAN-TCM bioinformatics data (~100 MB)
 tcm data pull symmap     # SymMap symptom-mapping database (~20 MB)
-tcm data status          # Show dataset status
+tcm data status          # Show all dataset statuses
 ```
 
-> **Note:** Automated download is not yet implemented for all datasets. The command shows the source URL and target path; download manually and configure the path with `tcm config set data.<name> <path>`.
+**Install modes:**
+- `herbs` and `formulas` install instantly from bundled package data.
+- Datasets with a direct download URL are fetched automatically with a progress bar and extracted.
+- Datasets that require registration (tcmsp, tcmid, batman, symmap) print step-by-step instructions. After downloading manually, register the file:
+
+```bash
+tcm data import tcmsp ~/Downloads/tcmsp.zip
+tcm data import tcmsp ~/Downloads/tcmsp-extracted/   # or a directory
+```
+
+Use `--force` to re-download or reinstall any dataset:
+
+```bash
+tcm data pull herbs --force
+```
 
 ## Configuration
 

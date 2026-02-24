@@ -5,14 +5,42 @@ build-backend = "hatchling.build"
 [project]
 name = "tcm-cli"
 version = "0.1.0"
-description = "TCM CLI — An autonomous agent for Traditional Chinese Medicine research and discovery"
+description = "An autonomous agent for Traditional Chinese Medicine research and discovery"
 readme = "README.md"
-license = "MIT"
+license = { file = "LICENSE" }
 requires-python = ">=3.10"
 authors = [
     { name = "TCM-CLI Contributors" },
 ]
-
+keywords = [
+    "tcm",
+    "traditional-chinese-medicine",
+    "herbs",
+    "pharmacology",
+    "network-pharmacology",
+    "bioinformatics",
+    "ai-agent",
+    "llm",
+    "research",
+    "cli",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Healthcare Industry",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Environment :: Console",
+    "Operating System :: OS Independent",
+]
 dependencies = [
     "typer>=0.12",
     "rich>=13.0",
@@ -25,6 +53,12 @@ dependencies = [
     "python-dotenv>=1.0",
     "markdown>=3.5",
 ]
+
+[project.urls]
+Homepage = "https://github.com/tigerneil/tcm-cli"
+Repository = "https://github.com/tigerneil/tcm-cli"
+Documentation = "https://github.com/tigerneil/tcm-cli#readme"
+"Bug Tracker" = "https://github.com/tigerneil/tcm-cli/issues"
 
 [project.optional-dependencies]
 chemistry = [

@@ -243,12 +243,27 @@ app.add_typer(data_app, name="data")
 
 @data_app.command("pull")
 def data_pull(
-    dataset: str = typer.Argument(help="Dataset to download (tcmsp, tcmid, herbs, formulas, batman, symmap)"),
+    dataset: str = typer.Argument(help="Dataset to install (herbs, formulas, tcmsp, tcmid, batman, symmap)"),
     output: Optional[Path] = typer.Option(None, help="Output directory"),
+    force: bool = typer.Option(False, "--force", "-f", help="Re-install even if already present"),
 ):
-    """Download a dataset for local use."""
+    """Download or install a dataset for local use."""
     from tcm.data.downloader import download_dataset
-    download_dataset(dataset, output)
+    ok = download_dataset(dataset, output, force=force)
+    if not ok:
+        raise typer.Exit(code=1)
+
+
+@data_app.command("import")
+def data_import(
+    dataset: str = typer.Argument(help="Dataset name (tcmsp, tcmid, batman, symmap, ...)"),
+    path: Path = typer.Argument(help="Path to downloaded archive or extracted directory"),
+):
+    """Register a manually downloaded dataset file or directory."""
+    from tcm.data.downloader import import_dataset
+    ok = import_dataset(dataset, path)
+    if not ok:
+        raise typer.Exit(code=1)
 
 
 @data_app.command("status")
