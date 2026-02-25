@@ -225,14 +225,110 @@ def doctor_cmd():
     console.print("\n[green]No blocking issues.[/green]")
 
 
-# ─── Keys command ────────────────────────────────────────────
+# ─── Keys subcommands ────────────────────────────────────────
 
-@app.command("keys")
-def keys_cmd():
+keys_app = typer.Typer(help="Manage API keys for LLM providers")
+app.add_typer(keys_app, name="keys")
+
+@keys_app.callback(invoke_without_command=True)
+def keys_default(ctx: typer.Context):
+    """Default action shows key status when no subcommand is given."""
+    if ctx.invoked_subcommand is not None:
+        return
+    from tcm.agent.config import Config
+    cfg = Config.load()
+    console.print(cfg.keys_table())
+
+@keys_app.command("show")
+def keys_show_cmd():
     """Show status of API keys."""
     from tcm.agent.config import Config
     cfg = Config.load()
     console.print(cfg.keys_table())
+
+@keys_app.command("set")
+def keys_set_cmd(
+    provider: Optional[str] = typer.Option(None, "--provider", "-p", help="Provider to set (e.g. anthropic, openai, google, mistral, groq, cohere, together, ollama)"),
+    api_key: Optional[str] = typer.Option(None, "--api-key", help="API key value (omit to be prompted securely)"),
+    make_default: bool = typer.Option(False, "--make-default", help="Also set llm.provider to this provider (only if supported)"),
+):
+    """Set the API key for a given provider. Interactive if options omitted."""
+    from tcm.agent.config import Config, PROVIDER_SPECS, VALID_LLM_PROVIDERS
+
+    cfg = Config.load()
+
+    # Choose provider interactively if not specified
+    prov = (provider or "").strip().lower()
+    if not prov:
+        console.print("  Choose a provider to configure:\n")
+        items = list(PROVIDER_SPECS.items())
+        # Primary first
+        items.sort(key=lambda kv: (0 if kv[1].get("primary") else 1, kv[0]))
+        for idx, (name, spec) in enumerate(items, 1):
+            label = spec.get("label", name.title())
+            note = " (primary)" if spec.get("primary") else ""
+            console.print(f"   {idx}. {label}{note}")
+        console.print()
+        try:
+            choice = input("  Enter number: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            console.print("\n  [dim]Cancelled.[/dim]")
+            raise typer.Exit()
+        try:
+            idx = int(choice)
+            if idx < 1 or idx > len(items):
+                raise ValueError
+        except ValueError:
+            console.print("  [red]Invalid selection[/red]")
+            raise typer.Exit(code=2)
+        prov = items[idx - 1][0]
+
+    if prov == "ollama":
+        console.print("  [yellow]Ollama typically does not require an API key.[/yellow]")
+        try:
+            confirm = input("  Save a placeholder anyway? [y/N] ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            console.print("\n  [dim]Cancelled.[/dim]")
+            raise typer.Exit()
+        if confirm not in ("y", "yes"):
+            console.print("  [dim]No changes made.[/dim]")
+            return
+
+    # Prompt for key if not provided
+    key_val = api_key
+    if key_val is None:
+        label = PROVIDER_SPECS.get(prov, {}).get("label", prov.title())
+        try:
+            key_val = getpass.getpass(f"  Enter your {label} API key: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            console.print("\n  [dim]Cancelled.[/dim]")
+            raise typer.Exit()
+
+    # Save
+    try:
+        cfg.set_llm_api_key(prov, key_val)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=2)
+    cfg.save()
+
+    masked = (key_val[:7] + "..." + key_val[-4:]) if key_val and len(key_val) > 11 else ("***" if key_val else "(cleared)")
+    console.print(f"  [green]Saved[/green] key for provider [bold]{prov}[/bold]: {masked}")
+
+    # Optionally set as default provider (only for runtime-supported ones)
+    if make_default:
+        if prov in VALID_LLM_PROVIDERS:
+            try:
+                cfg.set("llm.provider", prov)
+                cfg.save()
+                console.print(f"  [green]Default provider set to[/green] {prov}")
+            except ValueError as exc:
+                console.print(f"[red]{exc}[/red]")
+                raise typer.Exit(code=2)
+        else:
+            console.print(
+                f"  [yellow]Note:[/yellow] {prov} keys saved, but runtime provider support is not enabled yet."
+            )
 
 
 # ─── Data subcommand ─────────────────────────────────────────
@@ -412,6 +508,7 @@ def main(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
     model: Optional[str] = typer.Option(None, "--model", "-m", help="LLM model to use"),
     continue_session: bool = typer.Option(False, "--continue", "-c", help="Continue last session"),
+    language: Optional[str] = typer.Option(None, "--language", "--lang", help="Response language: en | zh | bi"),
 ):
     """TCM CLI — Traditional Chinese Medicine research agent."""
     if ctx.invoked_subcommand is not None:
@@ -425,6 +522,12 @@ def main(
 
     if model:
         cfg.set("llm.model", model)
+    if language:
+        try:
+            cfg.set("ui.language", language.lower())
+        except ValueError as exc:
+            console.print(f"[red]{exc}[/red]")
+            raise typer.Exit(code=2)
 
     session = Session(config=cfg, verbose=verbose)
 
@@ -447,8 +550,19 @@ def _run_single_query(session: Session, query: str, verbose: bool):
             plan = create_plan(session, query)
     except Exception as exc:
         if _is_auth_error(exc):
-            _print_auth_error(session)
-            raise typer.Exit(code=1)
+            if _handle_auth_error(session):
+                # Retry once after updating credentials
+                try:
+                    with console.status("[bold cyan]Planning...[/bold cyan]"):
+                        plan = create_plan(session, query)
+                except Exception as exc2:
+                    if _is_auth_error(exc2):
+                        # Show help and exit
+                        _handle_auth_error(session, prompt=False)
+                        raise typer.Exit(code=1)
+                    raise
+            else:
+                raise typer.Exit(code=1)
         raise
 
     steps = plan.get("steps", [])
@@ -502,13 +616,44 @@ def _is_auth_error(exc: Exception) -> bool:
     return "authentication" in err or "401" in err or "invalid x-api-key" in err or "invalid api key" in err
 
 
-def _print_auth_error(session: Session):
-    """Print a friendly authentication error message."""
+def _handle_auth_error(session: Session, prompt: bool = True) -> bool:
+    """Handle authentication failure.
+
+    If prompt is True, offer to capture and save the API key interactively.
+    Returns True if credentials were updated, else False.
+    """
     provider = session.config.get("llm.provider", "anthropic")
     console.print()
     console.print(f"  [red]Authentication failed[/red] for provider [bold]{provider}[/bold].")
-    console.print(f"  Your API key is missing or invalid.")
+    console.print("  Your API key is missing or invalid.")
     console.print()
+
+    if prompt:
+        try:
+            choice = input("  Enter a new API key now? [y/N] ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            console.print("\n  [dim]Cancelled.[/dim]")
+            return False
+        if choice in ("y", "yes"):
+            from tcm.agent.config import PROVIDER_SPECS
+            label = PROVIDER_SPECS.get(provider, {}).get("label", provider.title())
+            try:
+                new_key = getpass.getpass(f"  Enter your {label} API key: ").strip()
+            except (EOFError, KeyboardInterrupt):
+                console.print("\n  [dim]Cancelled.[/dim]")
+                return False
+            try:
+                session.config.set_llm_api_key(provider, new_key)
+                session.config.save()
+                # Recreate client with new credentials
+                session.refresh_llm()
+                console.print("  [green]API key saved.[/green]")
+                return True
+            except ValueError as exc:
+                console.print(f"[red]{exc}[/red]")
+                return False
+
+    # Guidance for manual setup
     if provider == "anthropic":
         console.print("  To fix, run one of:")
         console.print('    [cyan]tcm config set llm.api_key YOUR_KEY[/cyan]')
@@ -519,7 +664,12 @@ def _print_auth_error(session: Session):
         console.print('    [cyan]tcm config set llm.openai_api_key YOUR_KEY[/cyan]')
         console.print('    [cyan]export OPENAI_API_KEY=YOUR_KEY[/cyan]')
         console.print("  Get a key at: [link=https://platform.openai.com/api-keys]platform.openai.com/api-keys[/link]")
+    else:
+        console.print("  To fix, run:")
+        console.print(f"    [cyan]tcm keys set -p {provider} --api-key YOUR_KEY[/cyan]")
+        console.print("  Or set the provider-specific environment variable (see `tcm keys show`).")
     console.print()
+    return False
 
 
 def entry():

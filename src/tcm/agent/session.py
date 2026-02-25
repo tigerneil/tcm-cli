@@ -36,10 +36,17 @@ class Session:
         model = self.config.get("llm.model", None)
         api_key = self.config.llm_api_key(provider)
 
+        # Optional provider-specific base_url overrides (for OpenAI-compatible backends)
+        base_url = None
+        prov = (provider or "").lower()
+        if prov in {"deepseek", "kimi", "minimax", "qwen", "mistral", "groq"}:
+            base_url = self.config.get(f"llm.{prov}_base_url")
+
         return LLMClient(
             provider=provider,
             model=model,
             api_key=api_key,
+            base_url=base_url,
         )
 
     def set_model(self, model: str, provider: str = None):
@@ -51,6 +58,10 @@ class Session:
             self.config.set("llm.provider", provider)
         # Config.set("llm.model", ...) auto-detects provider
         self.config.set("llm.model", model)
+        self._llm = None
+
+    def refresh_llm(self):
+        """Drop the cached LLM client so it reloads with new credentials."""
         self._llm = None
 
     @property

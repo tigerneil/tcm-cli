@@ -129,6 +129,64 @@ _register(
         output_price=0.40,
         description="Fastest, most cost-effective",
     ),
+    # ── DeepSeek ───────────────────────────────────────────
+    ModelInfo(
+        id="deepseek-v3.2",
+        provider="deepseek",
+        display_name="DeepSeek V3.2",
+        context_window=128_000,
+        input_price=0.00,
+        output_price=0.00,
+        description="Latest general model",
+    ),
+    ModelInfo(
+        id="deepseek-r1",
+        provider="deepseek",
+        display_name="DeepSeek R1",
+        context_window=128_000,
+        input_price=0.00,
+        output_price=0.00,
+        description="Reasoning model",
+    ),
+    # ── Moonshot Kimi ──────────────────────────────────────
+    ModelInfo(
+        id="kimi-k2.5",
+        provider="kimi",
+        display_name="Kimi K2.5",
+        context_window=200_000,
+        input_price=0.00,
+        output_price=0.00,
+        description="Flagship Kimi model",
+    ),
+    # ── MiniMax ────────────────────────────────────────────
+    ModelInfo(
+        id="minimax-m2.5",
+        provider="minimax",
+        display_name="MiniMax M2.5",
+        context_window=200_000,
+        input_price=0.00,
+        output_price=0.00,
+        description="Flagship MiniMax model",
+    ),
+    # ── Qwen (DashScope) ───────────────────────────────────
+    ModelInfo(
+        id="qwen3-max",
+        provider="qwen",
+        display_name="Qwen3-Max",
+        context_window=1_000_000,
+        input_price=0.00,
+        output_price=0.00,
+        description="Flagship Qwen model",
+    ),
+    ModelInfo(
+        id="qwen-plus",
+        provider="qwen",
+        display_name="Qwen-Plus",
+        context_window=200_000,
+        input_price=0.00,
+        output_price=0.00,
+        description="Balanced speed/cost",
+    ),
 )
 
 # Provider prefix patterns for auto-detection of unknown models
@@ -138,6 +196,10 @@ _PROVIDER_PREFIXES = [
     ("o1-", "openai"),
     ("o3-", "openai"),
     ("o4-", "openai"),
+    ("deepseek-", "deepseek"),
+    ("kimi-", "kimi"),
+    ("minimax", "minimax"),
+    ("qwen", "qwen"),
 ]
 
 
@@ -236,13 +298,22 @@ class LLMClient:
     DEFAULT_MODELS = {
         "anthropic": "claude-sonnet-4-5-20250929",
         "openai": "gpt-4o",
+        "deepseek": "deepseek-v3.2",
+        "kimi": "kimi-k2.5",
+        "minimax": "minimax-m2.5",
+        "qwen": "qwen3-max",
+        "google": "gemini-1.5-pro",
+        "mistral": "mistral-large-latest",
+        "groq": "llama-3.1-70b-versatile",
+        "cohere": "command-r-plus",
     }
 
     def __init__(self, provider: str = "anthropic", model: str = None,
-                 api_key: str = None):
+                 api_key: str = None, base_url: str | None = None):
         self.provider = provider
         self.model = model or self.DEFAULT_MODELS.get(provider)
         self.api_key = api_key
+        self.base_url = base_url
         self._client = None
         self.usage = UsageTracker()
 
@@ -256,11 +327,45 @@ class LLMClient:
             self._client = anthropic.Anthropic(
                 api_key=self.api_key or os.environ.get("ANTHROPIC_API_KEY")
             )
-        elif self.provider == "openai":
+        elif self.provider in {"openai", "deepseek", "kimi", "minimax", "qwen", "mistral", "groq"}:
             import openai
-            self._client = openai.OpenAI(
-                api_key=self.api_key or os.environ.get("OPENAI_API_KEY")
-            )
+            # Determine key/env by provider; openai lib allows base_url override for compatible backends
+            key = self.api_key
+            if not key:
+                env_fallbacks = {
+                    "openai": "OPENAI_API_KEY",
+                    "deepseek": "DEEPSEEK_API_KEY",
+                    "kimi": "MOONSHOT_API_KEY",
+                    "minimax": "MINIMAX_API_KEY",
+                    "qwen": "DASHSCOPE_API_KEY",
+                    "mistral": "MISTRAL_API_KEY",
+                    "groq": "GROQ_API_KEY",
+                }
+                key = os.environ.get(env_fallbacks.get(self.provider, "OPENAI_API_KEY"))
+            # Pick base_url if provided, else sensible defaults for compatibles
+            base_urls = {
+                "openai": None,
+                "deepseek": "https://api.deepseek.com/v1",
+                "kimi": "https://api.moonshot.cn/v1",
+                "minimax": "https://api.minimax.chat/v1",
+                "qwen": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+                "mistral": "https://api.mistral.ai/v1",
+                "groq": "https://api.groq.com/openai/v1",
+            }
+            base_url = self.base_url if self.base_url is not None else base_urls.get(self.provider)
+            if base_url:
+                self._client = openai.OpenAI(api_key=key, base_url=base_url)
+            else:
+                self._client = openai.OpenAI(api_key=key)
+        elif self.provider == "google":
+            import google.generativeai as genai
+            key = self.api_key or os.environ.get("GOOGLE_API_KEY")
+            genai.configure(api_key=key)
+            self._client = genai
+        elif self.provider == "cohere":
+            import cohere
+            key = self.api_key or os.environ.get("COHERE_API_KEY")
+            self._client = cohere.Client(api_key=key)
         else:
             raise ValueError(f"Unknown provider: {self.provider}")
 
@@ -273,8 +378,12 @@ class LLMClient:
 
         if self.provider == "anthropic":
             resp = self._chat_anthropic(client, system, messages, temperature, max_tokens, tools)
-        elif self.provider == "openai":
+        elif self.provider in {"openai", "deepseek", "kimi", "minimax", "qwen", "mistral", "groq"}:
             resp = self._chat_openai(client, system, messages, temperature, max_tokens)
+        elif self.provider == "google":
+            resp = self._chat_google(client, system, messages, temperature, max_tokens)
+        elif self.provider == "cohere":
+            resp = self._chat_cohere(client, system, messages, temperature, max_tokens)
         else:
             raise ValueError(f"Unknown provider: {self.provider}")
 
@@ -290,8 +399,13 @@ class LLMClient:
 
         if self.provider == "anthropic":
             yield from self._stream_anthropic(client, system, messages, temperature, max_tokens)
-        elif self.provider == "openai":
+        elif self.provider in {"openai", "deepseek", "kimi", "minimax", "qwen", "mistral", "groq"}:
             yield from self._stream_openai(client, system, messages, temperature, max_tokens)
+        elif self.provider == "google":
+            yield from self._stream_google(client, system, messages, temperature, max_tokens)
+        elif self.provider == "cohere":
+            resp = self.chat(system, messages, temperature, max_tokens)
+            yield resp.content
         else:
             resp = self.chat(system, messages, temperature, max_tokens)
             yield resp.content
@@ -374,7 +488,87 @@ class LLMClient:
             lambda: self._call_openai(client, system, messages, temperature, max_tokens)
         )
 
+    def _chat_google(self, client, system, messages, temperature, max_tokens):
+        return self._retry(
+            lambda: self._call_google(client, system, messages, temperature, max_tokens)
+        )
+
+    def _call_google(self, genai, system, messages, temperature, max_tokens):
+        model = genai.GenerativeModel(self.model, system_instruction=system)
+        contents = []
+        for m in messages:
+            role = m.get("role", "user")
+            role = "user" if role == "user" else ("model" if role == "assistant" else "user")
+            contents.append({"role": role, "parts": [m.get("content", "")]})
+        response = model.generate_content(
+            contents,
+            generation_config={
+                "temperature": float(temperature),
+                "max_output_tokens": int(max_tokens),
+            },
+        )
+        text = getattr(response, "text", None) or ""
+        usage_meta = getattr(response, "usage_metadata", None)
+        usage = None
+        if usage_meta:
+            usage = {
+                "input": getattr(usage_meta, "prompt_token_count", 0),
+                "output": getattr(usage_meta, "candidates_token_count", 0),
+            }
+        return LLMResponse(content=text, model=self.model, usage=usage, raw=response)
+
+    def _stream_google(self, client, system, messages, temperature, max_tokens):
+        model = client.GenerativeModel(self.model, system_instruction=system)
+        contents = []
+        for m in messages:
+            role = m.get("role", "user")
+            role = "user" if role == "user" else ("model" if role == "assistant" else "user")
+            contents.append({"role": role, "parts": [m.get("content", "")]})
+        stream = model.generate_content(
+            contents,
+            generation_config={
+                "temperature": float(temperature),
+                "max_output_tokens": int(max_tokens),
+            },
+            stream=True,
+        )
+        for chunk in stream:
+            txt = getattr(chunk, "text", None)
+            if txt:
+                yield txt
+
+    def _chat_cohere(self, client, system, messages, temperature, max_tokens):
+        return self._retry(
+            lambda: self._call_cohere(client, system, messages, temperature, max_tokens)
+        )
+
+    def _call_cohere(self, client, system, messages, temperature, max_tokens):
+        parts = [f"[system]\n{system}"] if system else []
+        for m in messages:
+            role = m.get("role", "user")
+            content = m.get("content", "")
+            parts.append(f"[{role}]\n{content}")
+        prompt = "\n\n".join(parts)
+        resp = client.chat(
+            model=self.model,
+            message=prompt,
+            temperature=float(temperature),
+            max_tokens=int(max_tokens),
+        )
+        text = getattr(resp, "text", None) or getattr(resp, "message", None) or ""
+        usage = None
+        try:
+            tok = getattr(resp, "meta", {}).get("billed_units", {})
+            usage = {"input": tok.get("input_tokens", 0), "output": tok.get("output_tokens", 0)}
+        except Exception:
+            pass
+        return LLMResponse(content=text, model=self.model, usage=usage, raw=resp)
+
     def _call_openai(self, client, system, messages, temperature, max_tokens):
+        # Normalize temperature for OpenAI-compatible providers
+        # Kimi (Moonshot) only accepts temperature=1 for some models
+        if self.provider == "kimi":
+            temperature = 1.0
         oai_messages = [{"role": "system", "content": system}] + messages
         response = client.chat.completions.create(
             model=self.model,
@@ -390,14 +584,17 @@ class LLMClient:
                 "output": response.usage.completion_tokens,
             }
         return LLMResponse(
-            content=choice.message.content or "",
+            content=(getattr(choice, "message", None) and (choice.message.content or "")) or "",
             model=self.model,
             usage=usage_data,
             raw=response,
         )
 
     def _stream_openai(self, client, system, messages, temperature, max_tokens):
-        """Stream from OpenAI API, yielding text deltas."""
+        """Stream from OpenAI-compatible APIs, yielding text deltas."""
+        # Normalize temperature for OpenAI-compatible providers
+        if self.provider == "kimi":
+            temperature = 1.0
         oai_messages = [{"role": "system", "content": system}] + messages
         stream = client.chat.completions.create(
             model=self.model,
@@ -407,5 +604,10 @@ class LLMClient:
             stream=True,
         )
         for chunk in stream:
-            if chunk.choices and chunk.choices[0].delta.content:
-                yield chunk.choices[0].delta.content
+            try:
+                if getattr(chunk, "choices", None) and chunk.choices:
+                    delta = getattr(chunk.choices[0], "delta", None)
+                    if delta and getattr(delta, "content", None):
+                        yield delta.content
+            except Exception:
+                continue

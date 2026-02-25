@@ -22,14 +22,63 @@ from rich.table import Table
 
 CONFIG_DIR = Path.home() / ".tcm"
 CONFIG_FILE = CONFIG_DIR / "config.json"
-VALID_LLM_PROVIDERS = frozenset({"anthropic", "openai"})
+# Providers currently supported by the runtime LLM client
+VALID_LLM_PROVIDERS = frozenset({
+    "anthropic",
+    "openai",
+    "deepseek",
+    "kimi",
+    "minimax",
+    "qwen",
+    "google",
+    "mistral",
+    "groq",
+    "cohere",
+})
 logger = logging.getLogger("tcm.config")
+
+# Additional common providers for key storage/UX (may not be runtime-supported yet)
+PROVIDER_SPECS = {
+    "anthropic": {"label": "Anthropic", "config_key": "llm.api_key", "env": "ANTHROPIC_API_KEY", "primary": True},
+    "openai":    {"label": "OpenAI", "config_key": "llm.openai_api_key", "env": "OPENAI_API_KEY", "primary": False},
+    "google":    {"label": "Google (Gemini)", "config_key": "llm.google_api_key", "env": "GOOGLE_API_KEY", "primary": False},
+    "mistral":   {"label": "Mistral", "config_key": "llm.mistral_api_key", "env": "MISTRAL_API_KEY", "primary": False},
+    "groq":      {"label": "Groq", "config_key": "llm.groq_api_key", "env": "GROQ_API_KEY", "primary": False},
+    "cohere":    {"label": "Cohere", "config_key": "llm.cohere_api_key", "env": "COHERE_API_KEY", "primary": False},
+    "together":  {"label": "Together AI", "config_key": "llm.together_api_key", "env": "TOGETHER_API_KEY", "primary": False},
+    "ollama":    {"label": "Ollama (local)", "config_key": "llm.ollama_api_key", "env": None, "primary": False},  # typically not needed
+    # Newly added providers
+    "deepseek":  {"label": "DeepSeek", "config_key": "llm.deepseek_api_key", "env": "DEEPSEEK_API_KEY", "primary": False},
+    "kimi":      {"label": "Moonshot Kimi", "config_key": "llm.kimi_api_key", "env": "MOONSHOT_API_KEY", "primary": False},
+    "minimax":   {"label": "MiniMax", "config_key": "llm.minimax_api_key", "env": "MINIMAX_API_KEY", "primary": False},
+    "qwen":      {"label": "Qwen (DashScope)", "config_key": "llm.qwen_api_key", "env": "DASHSCOPE_API_KEY", "primary": False},
+}
 
 DEFAULTS = {
     "llm.provider": "anthropic",
     "llm.model": "claude-sonnet-4-5-20250929",
-    "llm.api_key": None,
+    # Provider API keys
+    "llm.api_key": None,               # Anthropic (historical default)
     "llm.openai_api_key": None,
+    "llm.google_api_key": None,
+    "llm.mistral_api_key": None,
+    "llm.groq_api_key": None,
+    "llm.cohere_api_key": None,
+    "llm.together_api_key": None,
+    "llm.ollama_api_key": None,
+    "llm.deepseek_api_key": None,
+    "llm.kimi_api_key": None,
+    "llm.minimax_api_key": None,
+    "llm.qwen_api_key": None,
+    # Provider base URLs (overridable)
+    "llm.deepseek_base_url": "https://api.deepseek.com/v1",
+    "llm.kimi_base_url": "https://api.moonshot.cn/v1",
+    "llm.minimax_base_url": "https://api.minimax.chat/v1",
+    "llm.qwen_base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "llm.mistral_base_url": "https://api.mistral.ai/v1",
+    "llm.groq_base_url": "https://api.groq.com/openai/v1",
+
+    # Model parameters
     "llm.temperature": 0.1,
 
     "data.base": str(CONFIG_DIR / "data"),
@@ -46,7 +95,7 @@ DEFAULTS = {
     "output.auto_publish_html_batch": False,
 
     "ui.spinner": "dots",
-    "ui.language": "en",  # "en" or "zh"
+    "ui.language": "en",  # "en" (English), "zh" (中文), or "bi" (bilingual)
 
     "sandbox.timeout": 30,
     "sandbox.output_dir": str(Path.cwd() / "outputs"),
@@ -150,22 +199,41 @@ class Config:
                 )
             for pk, pv in preset.items():
                 self._data[pk] = pv
+        if key == "ui.language":
+            norm = str(value).strip().lower()
+            if norm not in {"en", "zh", "bi"}:
+                raise ValueError("ui.language must be one of: en, zh, bi")
+            value = norm
         self._data[key] = value
 
+    def set_llm_api_key(self, provider: str, api_key: Optional[str]):
+        """Set API key for a specific provider, normalizing provider names.
+
+        If the provider is unknown (not in PROVIDER_SPECS), raises ValueError.
+        """
+        if not provider:
+            raise ValueError("Provider is required")
+        prov = provider.lower().strip()
+        spec = PROVIDER_SPECS.get(prov)
+        if not spec:
+            raise ValueError(
+                f"Unknown provider '{provider}'. Known: {', '.join(sorted(PROVIDER_SPECS))}"
+            )
+        cfg_key = spec["config_key"]
+        self._data[cfg_key] = api_key
+
     def llm_api_key(self, provider: str = None) -> Optional[str]:
-        """Get the API key for the given LLM provider."""
-        provider = provider or self.get("llm.provider", "anthropic")
-        if provider == "anthropic":
-            return (
-                self._data.get("llm.api_key")
-                or os.environ.get("ANTHROPIC_API_KEY")
-            )
-        elif provider == "openai":
-            return (
-                self._data.get("llm.openai_api_key")
-                or os.environ.get("OPENAI_API_KEY")
-            )
-        return None
+        """Get the API key for the given LLM provider.
+
+        Looks up provider-specific config key first, then environment fallback per PROVIDER_SPECS.
+        """
+        provider = (provider or self.get("llm.provider", "anthropic")).lower()
+        spec = PROVIDER_SPECS.get(provider)
+        if not spec:
+            return None
+        cfg_key = spec["config_key"]
+        env = spec.get("env")
+        return self._data.get(cfg_key) or (os.environ.get(env) if env else None)
 
     def validate(self) -> list[str]:
         """Validate configuration and return a list of issues."""
@@ -216,14 +284,26 @@ class Config:
         table.add_column("Status")
         table.add_column("Description")
 
-        # Anthropic
-        key = self.llm_api_key("anthropic")
-        status = "[green]✓ configured[/green]" if key else "[red]✗ missing[/red]"
-        table.add_row("Anthropic", status, "Primary LLM provider")
+        # Show primary providers first, then the rest alphabetically
+        def sort_key(item):
+            name, spec = item
+            return (0 if spec.get("primary") else 1, name)
 
-        # OpenAI
-        key = self.llm_api_key("openai")
-        status = "[green]✓ configured[/green]" if key else "[dim]○ optional[/dim]"
-        table.add_row("OpenAI", status, "Alternative LLM provider")
+        for name, spec in sorted(PROVIDER_SPECS.items(), key=sort_key):
+            label = spec.get("label", name.title())
+            key = self.llm_api_key(name)
+            if spec.get("primary"):
+                desc = "Primary LLM provider"
+                status = "[green]✓ configured[/green]" if key else "[red]✗ missing[/red]"
+            else:
+                desc = "Additional provider (optional)"
+                status = "[green]✓ configured[/green]" if key else "[dim]○ optional[/dim]"
+
+            # Special-case providers that usually don't need keys
+            if name == "ollama":
+                desc = "Local runtime (no key typically required)"
+                status = "[green]✓ available[/green]" if key else "[dim]○ n/a[/dim]"
+
+            table.add_row(label, status, desc)
 
         return table

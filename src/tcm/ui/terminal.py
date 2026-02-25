@@ -1,3 +1,4 @@
+
 """
 Interactive terminal for tcm.
 
@@ -24,6 +25,7 @@ SLASH_COMMANDS = {
     "/help": "Show command reference with examples",
     "/tools": "List all tools with status",
     "/model": "Switch LLM model/provider",
+    "/lang": "Set response language: en | zh | bi",
     "/config": "Show active runtime configuration",
     "/keys": "Show API key setup status",
     "/doctor": "Run readiness diagnostics",
@@ -123,6 +125,8 @@ class InteractiveTerminal:
             from tcm.tools import registry, ensure_loaded
             ensure_loaded()
             self.console.print(registry.list_tools_table())
+        elif cmd == "/lang":
+            self._lang_switch(command)
         elif cmd == "/config":
             self.console.print(self.session.config.to_table())
         elif cmd == "/keys":
@@ -164,6 +168,25 @@ class InteractiveTerminal:
         lines.append("  • Use @tcmsp or @pubmed to request specific databases")
         lines.append("  • Ask questions in English or Chinese")
         self.console.print(Panel("\n".join(lines), title="[bold]tcm help[/bold]", border_style="cyan"))
+
+    def _lang_switch(self, command: str):
+        """Show or set the response language (en, zh, bi)."""
+        parts = command.split(maxsplit=1)
+        cfg = self.session.config
+        current = cfg.get("ui.language", "en")
+        if len(parts) == 1:
+            self.console.print(f"  Language: [cyan]{current}[/cyan] (set with /lang en|zh|bi)")
+            return
+        choice = parts[1].strip().lower()
+        if choice not in {"en", "zh", "bi"}:
+            self.console.print("  [yellow]Invalid language.[/yellow] Use: en | zh | bi")
+            return
+        try:
+            cfg.set("ui.language", choice)
+            cfg.save()
+            self.console.print(f"  [green]Language set to[/green] [cyan]{choice}[/cyan]")
+        except ValueError as exc:
+            self.console.print(f"[red]{exc}[/red]")
 
     def _model_picker(self, command: str):
         """Interactive model picker.
@@ -265,8 +288,18 @@ class InteractiveTerminal:
                 plan = create_plan(self.session, query)
         except Exception as exc:
             if self._is_auth_error(exc):
-                self._print_auth_error()
-                return
+                if self._handle_auth_error():
+                    # Retry once
+                    try:
+                        with self.console.status("[bold cyan]Planning research...[/bold cyan]"):
+                            plan = create_plan(self.session, query)
+                    except Exception as exc2:
+                        if self._is_auth_error(exc2):
+                            self._handle_auth_error(prompt=False)
+                            return
+                        raise
+                else:
+                    return
             raise
 
         steps = plan.get("steps", [])
@@ -293,15 +326,47 @@ class InteractiveTerminal:
         err = str(exc).lower()
         return "authentication" in err or "401" in err or "invalid x-api-key" in err or "invalid api key" in err
 
-    def _print_auth_error(self):
+    def _handle_auth_error(self, prompt: bool = True) -> bool:
+        """Handle auth error in interactive terminal. Returns True if updated."""
         provider = self.session.config.get("llm.provider", "anthropic")
         self.console.print(f"  [red]Authentication failed[/red] for [bold]{provider}[/bold].")
-        self.console.print(f"  Your API key is missing or invalid.")
+        self.console.print("  Your API key is missing or invalid.")
+
+        if prompt:
+            try:
+                choice = input("  Enter a new API key now? [y/N] ").strip().lower()
+            except (EOFError, KeyboardInterrupt):
+                self.console.print("\n  [dim]Cancelled.[/dim]")
+                return False
+            if choice in ("y", "yes"):
+                from tcm.agent.config import PROVIDER_SPECS
+                label = PROVIDER_SPECS.get(provider, {}).get("label", provider.title())
+                try:
+                    import getpass
+                    new_key = getpass.getpass(f"  Enter your {label} API key: ").strip()
+                except (EOFError, KeyboardInterrupt):
+                    self.console.print("\n  [dim]Cancelled.[/dim]")
+                    return False
+                try:
+                    self.session.config.set_llm_api_key(provider, new_key)
+                    self.session.config.save()
+                    # Refresh LLM client
+                    self.session.refresh_llm()
+                    self.console.print("  [green]API key saved.[/green]")
+                    return True
+                except ValueError as exc:
+                    self.console.print(f"[red]{exc}[/red]")
+                    return False
+
+        # Manual guidance
         if provider == "anthropic":
             self.console.print("  Fix: [cyan]tcm config set llm.api_key YOUR_KEY[/cyan]")
         elif provider == "openai":
             self.console.print("  Fix: [cyan]tcm config set llm.openai_api_key YOUR_KEY[/cyan]")
+        else:
+            self.console.print(f"  Fix: [cyan]tcm keys set -p {provider} --api-key YOUR_KEY[/cyan]")
         self.console.print()
+        return False
 
     def _export_transcript(self):
         """Export session transcript to markdown file."""

@@ -8,25 +8,48 @@ from tcm.agent.session import Session
 
 logger = logging.getLogger("tcm.agent.synthesizer")
 
-SYNTHESIS_SYSTEM = """You are an expert Traditional Chinese Medicine (TCM) research assistant.
+BASE_SYNTHESIS_SYSTEM = """You are an expert Traditional Chinese Medicine (TCM) research assistant.
 You are given a user's question and the results from executing a research plan.
 
 Your task: synthesize these results into a clear, well-structured answer.
 
 GUIDELINES:
 1. Be specific and cite data from tool results.
-2. Use both Chinese and English terminology (e.g., 补气 Qi-tonifying).
-3. Structure your response with clear headings when appropriate.
-4. Include dosage information when relevant.
-5. Note any safety concerns or contraindications.
-6. If results are incomplete, acknowledge limitations.
-7. End with 2-3 suggested follow-up questions.
-
-FORMAT:
-- Use Markdown formatting.
-- Include a "## Key Findings" section.
-- Include a "## Suggested Next Steps" section with follow-up research questions.
+2. Structure your response with clear headings when appropriate.
+3. Include dosage information when relevant.
+4. Note any safety concerns or contraindications.
+5. If results are incomplete, acknowledge limitations.
+6. End with 2-3 suggested follow-up questions.
 """
+
+
+def _lang_instructions(lang: str) -> str:
+    lang = (lang or "en").lower()
+    if lang == "zh":
+        return (
+            "OUTPUT LANGUAGE:\n"
+            "- 仅用中文回答，不要包含英文。\n"
+            "- 标题与结构使用中文（例如：'## 关键信息'、'## 建议的下一步'）。\n"
+            "- 术语应包含中医术语并在必要时给出现代医学对照。\n"
+        )
+    if lang == "bi":
+        return (
+            "OUTPUT LANGUAGE:\n"
+            "- 提供中英双语内容。先中文段落，再对应的英文段落。\n"
+            "- 对每个主要标题使用并列标题，例如：'## 关键信息 | Key Findings'、'## 建议的下一步 | Suggested Next Steps'。\n"
+            "- 在要点层面尽量对齐中英文内容。\n"
+        )
+    # default en
+    return (
+        "OUTPUT LANGUAGE:\n"
+        "- Answer in English only (no Chinese characters unless quoted from sources).\n"
+        "- Use English headings such as '## Key Findings' and '## Suggested Next Steps'.\n"
+        "- Include pinyin in parentheses when helpful (e.g., Ren Shen (ginseng)).\n"
+    )
+
+
+def _build_synthesis_system(lang: str) -> str:
+    return BASE_SYNTHESIS_SYSTEM + "\n" + _lang_instructions(lang)
 
 
 def synthesize(session: Session, query: str, plan: dict, results: list[dict]) -> str:
@@ -59,11 +82,12 @@ Please synthesize these results into a comprehensive answer."""
 
     llm = session.get_llm()
     max_tokens = int(session.config.get("agent.synthesis_max_tokens", 8192))
+    lang = session.config.get("ui.language", "en")
 
     # Use streaming for synthesis
     chunks = []
     for chunk in llm.stream(
-        system=SYNTHESIS_SYSTEM,
+        system=_build_synthesis_system(lang),
         messages=[{"role": "user", "content": user_message}],
         temperature=0.2,
         max_tokens=max_tokens,
@@ -97,9 +121,10 @@ Please synthesize these results into a comprehensive answer."""
 
     llm = session.get_llm()
     max_tokens = int(session.config.get("agent.synthesis_max_tokens", 8192))
+    lang = session.config.get("ui.language", "en")
 
     for chunk in llm.stream(
-        system=SYNTHESIS_SYSTEM,
+        system=_build_synthesis_system(lang),
         messages=[{"role": "user", "content": user_message}],
         temperature=0.2,
         max_tokens=max_tokens,
