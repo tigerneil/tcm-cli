@@ -10,7 +10,7 @@ Ask questions in natural language. tcm-cli plans the analysis, selects the right
 
 - **30+ TCM research tools** — Herb lookup, formula analysis, syndrome differentiation, network pharmacology, safety checks, literature search, and more.
 - **Multi-model reasoning** — Powered by leading LLMs (OpenAI GPT-4o, o3, and more). Automatically plans multi-step research workflows, calls tools, and synthesizes findings.
-- **Bilingual** — Supports both Chinese (中文) and English terminology throughout.
+- **Bilingual** — Supports both Chinese (中文) and English terminology throughout. See: [Language Modes](docs/LANGUAGE.md)
 - **10+ database APIs** — PubMed, TCMSP, UniProt, STRING, KEGG, ClinicalTrials.gov, Open Targets — no setup required.
 - **Research UX** — Interactive terminal with slash commands, session export, and clipboard support.
 - **Open source** — MIT licensed.
@@ -18,7 +18,7 @@ Ask questions in natural language. tcm-cli plans the analysis, selects the right
 ## Requirements
 
 - Python 3.10+
-- An LLM API key (OpenAI or compatible)
+- An LLM API key (any one of: Anthropic, OpenAI, DeepSeek, Kimi (Moonshot), MiniMax, Qwen (DashScope), Mistral, Groq, Cohere)
 
 ## Installation
 
@@ -58,21 +58,24 @@ pip install "tcm-cli[all]"
 ### Authentication
 
 ```bash
-# Interactive setup wizard (recommended)
-tcm setup
+# Interactive setup wizard (Anthropic default)
+ tcm setup
 
-# Or export directly
-export OPENAI_API_KEY="sk-..."
+# Manage multiple providers (recommended)
+ tcm keys                 # show status for all providers
+ tcm keys set -p openai   # set OpenAI key (prompts securely)
+ tcm keys set -p kimi     # set Moonshot Kimi key
+ tcm keys set -p deepseek # set DeepSeek key
+
+# Or export directly (CI)
+ export OPENAI_API_KEY="sk-..."
+ export ANTHROPIC_API_KEY="..."
 
 # Non-interactive (CI/scripting)
-tcm setup --api-key YOUR_API_KEY
+ tcm setup --api-key YOUR_ANTHROPIC_KEY
 ```
 
-API keys are stored at `~/.tcm/config.json`. Check key status with:
-
-```bash
-tcm keys
-```
+API keys are stored at `~/.tcm/config.json`. See provider mapping and base URLs in [docs/PROVIDERS.md](docs/PROVIDERS.md).
 
 ## Getting Started
 
@@ -88,6 +91,11 @@ tcm "What herbs are used for Spleen Qi deficiency?"
 # Use a specific model
 tcm --model gpt-4o "Analyze 四君子汤"
 
+# Set language per run (English | Chinese | Bilingual)
+tcm --lang en "Check interactions between 人参 and 藜芦"
+tcm --lang zh "分析 四君子汤 的组成与配伍"
+tcm --lang bi "Network pharmacology for 补中益气汤"
+
 # Validate setup
 tcm doctor
 ```
@@ -99,6 +107,7 @@ Inside `tcm` interactive mode:
 - `/help` — command reference + examples
 - `/tools` — list all tools with status
 - `/model` — switch LLM model/provider
+- `/lang` — set output language: `en` | `zh` | `bi`
 - `/usage` — token and cost tracking
 - `/copy` — copy last answer to clipboard
 - `/export` — export session transcript
@@ -137,6 +146,25 @@ $ tcm "Build a network pharmacology analysis for 补中益气汤 against diabete
 $ tcm "Check interactions between 人参, 藜芦, and Warfarin"
 ```
 
+## Language modes
+
+You can control the language of answers globally or per-run.
+
+- Per run: `--language`/`--lang` with `en` | `zh` | `bi`
+- Interactive: `/lang en|zh|bi`
+- Persist default: `tcm config set ui.language bi`
+
+Behavior by mode:
+- `en`: English-only output with occasional pinyin for key TCM terms
+- `zh`: 中文输出，不含英文（除非作为引用）
+- `bi`: Bilingual — paired headings (e.g., "## 关键信息 | Key Findings") and aligned bullet points
+
+## Documentation
+
+- Language Modes: see [docs/LANGUAGE.md](docs/LANGUAGE.md)
+- Providers, keys, and base URLs: see [docs/PROVIDERS.md](docs/PROVIDERS.md)
+- Changelog: see [CHANGELOG.md](CHANGELOG.md)
+
 ## Key Features
 
 ### 30+ Domain Tools
@@ -162,24 +190,31 @@ List all tools and their status:
 tcm tool list
 ```
 
-### Supported Models
+### Supported providers and models
 
-| Provider | Model | Context | Notes |
-| --- | --- | --- | --- |
-| OpenAI | `gpt-4o` | 128k | Default — best balance |
-| OpenAI | `gpt-4o-mini` | 128k | Fast and affordable |
-| OpenAI | `o3-mini` | 200k | Reasoning model |
-| OpenAI | `gpt-4.1` | 1M | Latest flagship with 1M context |
-| OpenAI | `gpt-4.1-mini` | 1M | Balanced speed and intelligence |
-| OpenAI | `gpt-4.1-nano` | 1M | Fastest, most cost-effective |
+Out of the box, tcm-cli can talk to these providers (pick any one):
 
-Switch models:
+- Anthropic: `claude-sonnet-4-5-20250929` (default), `claude-haiku-4-5-20251001`, `claude-opus-4-6`
+- OpenAI: `gpt-4o`, `gpt-4o-mini`, `o3-mini`, `gpt-4.1*`
+- DeepSeek: `deepseek-v3.2`, `deepseek-r1`
+- Kimi (Moonshot): `kimi-k2.5`
+- MiniMax: `minimax-m2.5`
+- Qwen (DashScope): `qwen3-max`, `qwen-plus`
+- Google (Gemini): `gemini-1.5-pro`
+- Mistral: `mistral-large-latest`
+- Groq: `llama-3.1-70b-versatile`
+- Cohere: `command-r-plus`
+
+Tip: Use the interactive picker `/model` in the REPL, or CLI commands below.
 
 ```bash
-tcm model list              # Show all models with pricing
-tcm model set gpt-4o        # Switch to GPT-4o
-tcm model show              # Show current model
+tcm model list                 # Show all models grouped by provider with context/pricing
+tcm model set gpt-4o           # Switch to a model (provider auto-detected)
+tcm model set kimi-k2.5        # Switch to Moonshot Kimi
+tcm model show                 # Show current model
 ```
+
+See provider keys and base URLs: [docs/PROVIDERS.md](docs/PROVIDERS.md).
 
 ### Local Datasets
 
@@ -227,7 +262,7 @@ Config is stored at `~/.tcm/config.json`.
 ```bash
 tcm config set llm.provider openai          # openai or compatible
 tcm config set llm.model gpt-4o
-tcm config set ui.language zh               # en (default) or zh
+tcm config set ui.language bi               # en (default) | zh | bi
 ```
 
 ### Agent profiles
