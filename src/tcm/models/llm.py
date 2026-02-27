@@ -187,6 +187,100 @@ _register(
         output_price=0.00,
         description="Balanced speed/cost",
     ),
+    # ── Google (Gemini) ─────────────────────────────────────
+    # Stable production models
+    ModelInfo(
+        id="gemini-2.5-pro",
+        provider="google",
+        display_name="Gemini 2.5 Pro",
+        context_window=1_048_576,
+        input_price=1.25,
+        output_price=10.00,
+        description="Most capable Gemini, best for complex reasoning",
+    ),
+    ModelInfo(
+        id="gemini-2.5-flash",
+        provider="google",
+        display_name="Gemini 2.5 Flash",
+        context_window=1_048_576,
+        input_price=0.15,
+        output_price=0.60,
+        description="Fast mid-size multimodal model",
+    ),
+    ModelInfo(
+        id="gemini-2.5-flash-lite",
+        provider="google",
+        display_name="Gemini 2.5 Flash-Lite",
+        context_window=1_048_576,
+        input_price=0.075,
+        output_price=0.30,
+        description="Cost-efficient Gemini 2.5 model",
+    ),
+    ModelInfo(
+        id="gemini-2.0-flash",
+        provider="google",
+        display_name="Gemini 2.0 Flash",
+        context_window=1_048_576,
+        input_price=0.10,
+        output_price=0.40,
+        description="Fast, versatile next-gen multimodal model",
+    ),
+    ModelInfo(
+        id="gemini-2.0-flash-lite",
+        provider="google",
+        display_name="Gemini 2.0 Flash-Lite",
+        context_window=1_048_576,
+        input_price=0.075,
+        output_price=0.30,
+        description="Most cost-efficient Gemini 2.0 model",
+    ),
+    # Preview / frontier models
+    ModelInfo(
+        id="gemini-3.1-pro-preview",
+        provider="google",
+        display_name="Gemini 3.1 Pro Preview",
+        context_window=1_048_576,
+        input_price=0.00,
+        output_price=0.00,
+        description="Frontier Gemini 3.1 Pro, early access",
+    ),
+    ModelInfo(
+        id="gemini-3-pro-preview",
+        provider="google",
+        display_name="Gemini 3 Pro Preview",
+        context_window=1_048_576,
+        input_price=0.00,
+        output_price=0.00,
+        description="Frontier Gemini 3 Pro, early access",
+    ),
+    ModelInfo(
+        id="gemini-3-flash-preview",
+        provider="google",
+        display_name="Gemini 3 Flash Preview",
+        context_window=1_048_576,
+        input_price=0.00,
+        output_price=0.00,
+        description="Frontier Gemini 3 Flash, early access",
+    ),
+    # Convenience aliases (always point to latest stable)
+    ModelInfo(
+        id="gemini-pro-latest",
+        provider="google",
+        display_name="Gemini Pro Latest",
+        context_window=1_048_576,
+        input_price=0.00,
+        output_price=0.00,
+        description="Alias to latest stable Gemini Pro",
+    ),
+    ModelInfo(
+        id="gemini-flash-latest",
+        provider="google",
+        display_name="Gemini Flash Latest",
+        context_window=1_048_576,
+        input_price=0.00,
+        output_price=0.00,
+        description="Alias to latest stable Gemini Flash",
+    ),
 )
 
 # Provider prefix patterns for auto-detection of unknown models
@@ -200,6 +294,7 @@ _PROVIDER_PREFIXES = [
     ("kimi-", "kimi"),
     ("minimax", "minimax"),
     ("qwen", "qwen"),
+    ("gemini-", "google"),
 ]
 
 
@@ -225,6 +320,41 @@ def list_models(provider: str = None) -> list[ModelInfo]:
     if provider:
         models = [m for m in models if m.provider == provider]
     return models
+
+
+def list_google_models(api_key: str = None) -> list[dict]:
+    """Query the Google Gemini API for all available models that support generateContent.
+
+    Returns a list of dicts: {name, display_name, context_window, methods}.
+    Requires a valid GOOGLE_API_KEY.
+    """
+    import os
+    from google import genai as genai_sdk
+    key = api_key or os.environ.get("GOOGLE_API_KEY")
+    if not key:
+        raise ValueError(
+            "Google API key not configured. Run: tcm keys set -p google"
+            " or export GOOGLE_API_KEY=..."
+        )
+    client = genai_sdk.Client(api_key=key)
+    result = []
+    for m in client.models.list():
+        name = getattr(m, "name", "") or ""
+        methods = list(getattr(m, "supported_actions", None) or [])
+        # Prefer short id without "models/" prefix
+        short_id = name.replace("models/", "")
+        result.append({
+            "id": short_id,
+            "name": name,
+            "display_name": getattr(m, "display_name", short_id),
+            "description": getattr(m, "description", ""),
+            "input_token_limit": getattr(m, "input_token_limit", None),
+            "output_token_limit": getattr(m, "output_token_limit", None),
+            "methods": methods,
+        })
+    # Sort: generateContent-capable first, then alpha
+    result.sort(key=lambda x: ("generateContent" not in str(x["methods"]), x["id"]))
+    return result
 
 
 def model_pricing(model: str) -> Optional[dict]:
@@ -302,7 +432,7 @@ class LLMClient:
         "kimi": "kimi-k2.5",
         "minimax": "minimax-m2.5",
         "qwen": "qwen3-max",
-        "google": "gemini-1.5-pro",
+        "google": "gemini-2.5-flash",
         "mistral": "mistral-large-latest",
         "groq": "llama-3.1-70b-versatile",
         "cohere": "command-r-plus",
@@ -358,10 +488,9 @@ class LLMClient:
             else:
                 self._client = openai.OpenAI(api_key=key)
         elif self.provider == "google":
-            import google.generativeai as genai
+            from google import genai as genai_sdk
             key = self.api_key or os.environ.get("GOOGLE_API_KEY")
-            genai.configure(api_key=key)
-            self._client = genai
+            self._client = genai_sdk.Client(api_key=key)
         elif self.provider == "cohere":
             import cohere
             key = self.api_key or os.environ.get("COHERE_API_KEY")
@@ -493,47 +622,74 @@ class LLMClient:
             lambda: self._call_google(client, system, messages, temperature, max_tokens)
         )
 
-    def _call_google(self, genai, system, messages, temperature, max_tokens):
-        model = genai.GenerativeModel(self.model, system_instruction=system)
+    def _call_google(self, client, system, messages, temperature, max_tokens):
+        from google.genai import types as genai_types
+        # Build contents list
         contents = []
+        if system:
+            contents.append(genai_types.Content(
+                role="user",
+                parts=[genai_types.Part(text=f"[System instructions]\n{system}")],
+            ))
+            contents.append(genai_types.Content(
+                role="model",
+                parts=[genai_types.Part(text="Understood. I will follow those instructions.")],
+            ))
         for m in messages:
             role = m.get("role", "user")
-            role = "user" if role == "user" else ("model" if role == "assistant" else "user")
-            contents.append({"role": role, "parts": [m.get("content", "")]})
-        response = model.generate_content(
-            contents,
-            generation_config={
-                "temperature": float(temperature),
-                "max_output_tokens": int(max_tokens),
-            },
+            api_role = "model" if role == "assistant" else "user"
+            contents.append(genai_types.Content(
+                role=api_role,
+                parts=[genai_types.Part(text=m.get("content", ""))],
+            ))
+        config = genai_types.GenerateContentConfig(
+            temperature=float(temperature),
+            max_output_tokens=int(max_tokens),
         )
-        text = getattr(response, "text", None) or ""
-        usage_meta = getattr(response, "usage_metadata", None)
+        response = client.models.generate_content(
+            model=self.model,
+            contents=contents,
+            config=config,
+        )
+        text = response.text or ""
         usage = None
-        if usage_meta:
+        meta = getattr(response, "usage_metadata", None)
+        if meta:
             usage = {
-                "input": getattr(usage_meta, "prompt_token_count", 0),
-                "output": getattr(usage_meta, "candidates_token_count", 0),
+                "input": getattr(meta, "prompt_token_count", 0),
+                "output": getattr(meta, "candidates_token_count", 0),
             }
         return LLMResponse(content=text, model=self.model, usage=usage, raw=response)
 
     def _stream_google(self, client, system, messages, temperature, max_tokens):
-        model = client.GenerativeModel(self.model, system_instruction=system)
+        from google.genai import types as genai_types
         contents = []
+        if system:
+            contents.append(genai_types.Content(
+                role="user",
+                parts=[genai_types.Part(text=f"[System instructions]\n{system}")],
+            ))
+            contents.append(genai_types.Content(
+                role="model",
+                parts=[genai_types.Part(text="Understood. I will follow those instructions.")],
+            ))
         for m in messages:
             role = m.get("role", "user")
-            role = "user" if role == "user" else ("model" if role == "assistant" else "user")
-            contents.append({"role": role, "parts": [m.get("content", "")]})
-        stream = model.generate_content(
-            contents,
-            generation_config={
-                "temperature": float(temperature),
-                "max_output_tokens": int(max_tokens),
-            },
-            stream=True,
+            api_role = "model" if role == "assistant" else "user"
+            contents.append(genai_types.Content(
+                role=api_role,
+                parts=[genai_types.Part(text=m.get("content", ""))],
+            ))
+        config = genai_types.GenerateContentConfig(
+            temperature=float(temperature),
+            max_output_tokens=int(max_tokens),
         )
-        for chunk in stream:
-            txt = getattr(chunk, "text", None)
+        for chunk in client.models.generate_content_stream(
+            model=self.model,
+            contents=contents,
+            config=config,
+        ):
+            txt = chunk.text
             if txt:
                 yield txt
 

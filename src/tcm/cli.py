@@ -450,6 +450,46 @@ def model_set_cmd(
         )
 
 
+@model_app.command("google")
+def model_google_cmd():
+    """List models available from the Google Gemini API (requires GOOGLE_API_KEY)."""
+    from tcm.models.llm import list_google_models
+    from tcm.agent.config import Config
+    from rich.table import Table
+
+    cfg = Config.load()
+    api_key = cfg.get("llm.google_api_key") or None
+
+    try:
+        models = list_google_models(api_key=api_key)
+    except ValueError as exc:
+        console.print(f"  [red]{exc}[/red]")
+        raise typer.Exit(code=1)
+    except Exception as exc:
+        console.print(f"  [red]Failed to list Google models: {exc}[/red]")
+        raise typer.Exit(code=1)
+
+    table = Table(title="Google Gemini Models (live from API)")
+    table.add_column("Model ID", style="cyan")
+    table.add_column("Display Name")
+    table.add_column("Context In", justify="right")
+    table.add_column("Context Out", justify="right")
+    table.add_column("Description")
+
+    for m in models:
+        in_tok = str(m["input_token_limit"]) if m["input_token_limit"] else "-"
+        out_tok = str(m["output_token_limit"]) if m["output_token_limit"] else "-"
+        table.add_row(
+            m["id"],
+            m["display_name"] or "",
+            in_tok,
+            out_tok,
+            (m["description"] or "")[:60],
+        )
+    console.print(table)
+    console.print(f"\n  [dim]{len(models)} models returned. Use 'tcm model set <model-id>' to switch.[/dim]")
+
+
 @model_app.command("show")
 def model_show_cmd():
     """Show current model and provider."""

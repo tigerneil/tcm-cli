@@ -9,7 +9,7 @@ Ask questions in natural language. tcm-cli plans the analysis, selects the right
 ## Why tcm?
 
 - **30+ TCM research tools** — Herb lookup, formula analysis, syndrome differentiation, network pharmacology, safety checks, literature search, and more.
-- **Multi-model reasoning** — Powered by leading LLMs (OpenAI GPT-4o, o3, and more). Automatically plans multi-step research workflows, calls tools, and synthesizes findings.
+- **Multi-model reasoning** — Powered by leading LLMs (Anthropic, OpenAI, Google Gemini, DeepSeek, Kimi, Qwen, MiniMax, Mistral, Groq, Cohere). Automatically plans multi-step research workflows, calls tools, and synthesizes findings.
 - **Bilingual** — Supports both Chinese (中文) and English terminology throughout. See: [Language Modes](docs/LANGUAGE.md)
 - **10+ database APIs** — PubMed, TCMSP, UniProt, STRING, KEGG, ClinicalTrials.gov, Open Targets — no setup required.
 - **Research UX** — Interactive terminal with slash commands, session export, and clipboard support.
@@ -18,7 +18,7 @@ Ask questions in natural language. tcm-cli plans the analysis, selects the right
 ## Requirements
 
 - Python 3.10+
-- An LLM API key (any one of: Anthropic, OpenAI, DeepSeek, Kimi (Moonshot), MiniMax, Qwen (DashScope), Mistral, Groq, Cohere)
+- An LLM API key (any one of: Anthropic, OpenAI, Google (Gemini), DeepSeek, Kimi (Moonshot), MiniMax, Qwen (DashScope), Mistral, Groq, Cohere)
 
 ## Installation
 
@@ -66,10 +66,12 @@ pip install "tcm-cli[all]"
  tcm keys set -p openai   # set OpenAI key (prompts securely)
  tcm keys set -p kimi     # set Moonshot Kimi key
  tcm keys set -p deepseek # set DeepSeek key
+ tcm keys set -p google   # set Google (Gemini) key
 
 # Or export directly (CI)
  export OPENAI_API_KEY="sk-..."
  export ANTHROPIC_API_KEY="..."
+ export GOOGLE_API_KEY="..."
 
 # Non-interactive (CI/scripting)
  tcm setup --api-key YOUR_ANTHROPIC_KEY
@@ -89,7 +91,8 @@ tcm
 tcm "What herbs are used for Spleen Qi deficiency?"
 
 # Use a specific model
-tcm --model gpt-4o "Analyze 四君子汤"
+ tcm --model gpt-4o "Analyze 四君子汤"
+ tcm --model gemini-3.1-pro "Check interactions between 人参 and 藜芦"
 
 # Set language per run (English | Chinese | Bilingual)
 tcm --lang en "Check interactions between 人参 and 藜芦"
@@ -200,7 +203,7 @@ Out of the box, tcm-cli can talk to these providers (pick any one):
 - Kimi (Moonshot): `kimi-k2.5`
 - MiniMax: `minimax-m2.5`
 - Qwen (DashScope): `qwen3-max`, `qwen-plus`
-- Google (Gemini): `gemini-1.5-pro`
+- Google (Gemini): `gemini-2.5-flash` (default), `gemini-2.5-pro`, `gemini-2.5-flash-lite`, `gemini-2.0-flash`, `gemini-2.0-flash-lite`, `gemini-3.1-pro-preview`, `gemini-3-pro-preview`
 - Mistral: `mistral-large-latest`
 - Groq: `llama-3.1-70b-versatile`
 - Cohere: `command-r-plus`
@@ -208,10 +211,14 @@ Out of the box, tcm-cli can talk to these providers (pick any one):
 Tip: Use the interactive picker `/model` in the REPL, or CLI commands below.
 
 ```bash
-tcm model list                 # Show all models grouped by provider with context/pricing
-tcm model set gpt-4o           # Switch to a model (provider auto-detected)
-tcm model set kimi-k2.5        # Switch to Moonshot Kimi
-tcm model show                 # Show current model
+tcm model list                    # Show all models grouped by provider with context/pricing
+tcm model set gpt-4o              # Switch to a model (provider auto-detected)
+tcm model set kimi-k2.5           # Switch to Moonshot Kimi
+tcm model set gemini-2.5-flash    # Switch to Gemini 2.5 Flash
+tcm model set gemini-2.5-pro      # Switch to Gemini 2.5 Pro (most capable)
+tcm model set gemini-3.1-pro-preview  # Switch to Gemini 3.1 Pro Preview (frontier)
+tcm model google                  # List ALL available Gemini models live from the API
+tcm model show                    # Show current model
 ```
 
 See provider keys and base URLs: [docs/PROVIDERS.md](docs/PROVIDERS.md).
@@ -260,8 +267,10 @@ Config is stored at `~/.tcm/config.json`.
 ### Common config keys
 
 ```bash
-tcm config set llm.provider openai          # openai or compatible
-tcm config set llm.model gpt-4o
+tcm config set llm.provider openai           # switch to OpenAI
+tcm config set llm.model gpt-4o             # set model (provider auto-detected)
+tcm config set llm.provider google          # switch to Google (Gemini)
+tcm config set llm.model gemini-2.5-flash   # set Gemini 2.5 Flash as default
 tcm config set ui.language bi               # en (default) | zh | bi
 ```
 
@@ -280,6 +289,8 @@ tcm config set agent.profile education   # Relaxed, creative responses
 | `tcm` fails at startup | `tcm doctor` |
 | Authentication error | `tcm setup` or `tcm keys` |
 | Missing API key | `export OPENAI_API_KEY=...` or `tcm config set llm.openai_api_key ...` |
+| Google model 404 | Run `tcm model google` to see valid model IDs, then `tcm model set <id>` |
+| Google SSL/connect error | Transient network issue, retry or switch to another model |
 | Missing dependency | `pip install "tcm-cli[all]"` |
 | Tool module failed | `tcm tool list` — check for load errors |
 

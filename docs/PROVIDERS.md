@@ -12,7 +12,7 @@ This project supports multiple LLM providers. You only need ONE provider to use 
 | Kimi (Moonshot) | `kimi-k2.5` | `llm.kimi_api_key` | `MOONSHOT_API_KEY` | `https://api.moonshot.cn/v1` |
 | MiniMax | `minimax-m2.5` | `llm.minimax_api_key` | `MINIMAX_API_KEY` | `https://api.minimax.chat/v1` |
 | Qwen (DashScope) | `qwen3-max` | `llm.qwen_api_key` | `DASHSCOPE_API_KEY` | `https://dashscope.aliyuncs.com/compatible-mode/v1` |
-| Google (Gemini) | `gemini-1.5-pro` | `llm.google_api_key` | `GOOGLE_API_KEY` | (Gemini SDK) |
+| Google (Gemini) | `gemini-2.5-flash` (default), `gemini-2.5-pro`, `gemini-2.5-flash-lite`, `gemini-2.0-flash`, `gemini-3.1-pro-preview` | `llm.google_api_key` | `GOOGLE_API_KEY` | (google-genai SDK) |
 | Mistral | `mistral-large-latest` | `llm.mistral_api_key` | `MISTRAL_API_KEY` | `https://api.mistral.ai/v1` |
 | Groq | `llama-3.1-70b-versatile` | `llm.groq_api_key` | `GROQ_API_KEY` | `https://api.groq.com/openai/v1` |
 | Cohere | `command-r-plus` | `llm.cohere_api_key` | `COHERE_API_KEY` | (Cohere SDK) |
@@ -46,3 +46,5 @@ tcm model set kimi-k2.5
 - If a provider uses an OpenAI-compatible API, `tcm` will set the appropriate base URL automatically.
 - You can override base URLs in config (e.g., `llm.deepseek_base_url`).
 - For CI, set environment variables and avoid interactive prompts.
+- For Google (Gemini), run `tcm model google` to fetch the live list of all available models from the API. Use the returned model IDs directly with `tcm model set`.
+- Google preview models (e.g., `gemini-3.1-pro-preview`) may be subject to access restrictions or transient network issues.
