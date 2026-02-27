@@ -4,6 +4,7 @@ Tool registry for tcm.
 Each tool is a Python function decorated with @registry.register that the agent can invoke.
 Tools are organized by category (herbs, formulas, syndromes, etc.).
 """
+from __future__ import annotations
 
 from dataclasses import dataclass, field
 import importlib

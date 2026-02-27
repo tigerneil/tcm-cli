@@ -4,6 +4,7 @@ Herb tools: lookup, property classification, efficacy grouping.
 Covers 中药 (Chinese Materia Medica) queries — search by pinyin, Chinese name,
 Latin name, or English name. Returns properties (性味归经), efficacy, dosage.
 """
+from __future__ import annotations
 
 import httpx
 import logging

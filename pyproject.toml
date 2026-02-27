@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tcm-cli"
-version = "0.1.3"
+version = "0.1.4"
 description = "An autonomous agent for Traditional Chinese Medicine research and discovery"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 authors = [
     { name = "TCM-CLI Contributors" },
 ]
@@ -31,6 +31,7 @@ classifiers = [
     "Intended Audience :: Education",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",

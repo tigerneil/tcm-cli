@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.4] - 2026-02-27
+
+Fixed
+- Python 3.9/3.10/3.11 compatibility: added `from __future__ import annotations` to all
+  source files that use PEP 604 (`X | Y`) union type syntax.
+- Lowered `requires-python` from `>=3.10` to `>=3.9`; added Python 3.9 classifier.
+
 ## [0.1.3] - 2026-02-27
 
 Added
