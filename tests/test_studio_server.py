@@ -168,15 +168,22 @@ class TestStudioServerEndpoints:
 
 class TestCLISubcommands:
     def test_cli_version_and_studio_help(self):
+        import re
+
+        def _plain(text: str) -> str:
+            return re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", text)
+
+        env = {"NO_COLOR": "1", "TERM": "dumb"}
         runner = CliRunner()
-        r_ver = runner.invoke(app, ["version"])
+        r_ver = runner.invoke(app, ["version"], env=env)
         assert r_ver.exit_code == 0
-        assert "0.2.0" in r_ver.stdout
+        assert "0.2.0" in _plain(r_ver.stdout)
 
-        r_studio = runner.invoke(app, ["studio", "--help"])
+        r_studio = runner.invoke(app, ["studio", "--help"], env=env)
         assert r_studio.exit_code == 0
-        assert "--port" in r_studio.stdout
+        assert "--port" in _plain(r_studio.stdout)
 
-        r_rec = runner.invoke(app, ["model", "recommend", "tongue_vision"])
+        r_rec = runner.invoke(app, ["model", "recommend", "tongue_vision"], env=env)
         assert r_rec.exit_code == 0
-        assert "vision" in r_rec.stdout.lower() or "claude" in r_rec.stdout.lower() or "gemini" in r_rec.stdout.lower()
+        plain_rec = _plain(r_rec.stdout).lower()
+        assert "vision" in plain_rec or "claude" in plain_rec or "gemini" in plain_rec
