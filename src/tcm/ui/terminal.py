@@ -1,3 +1,4 @@
+from __future__ import annotations
 
 """
 Interactive terminal for tcm.
@@ -6,17 +7,17 @@ Provides a REPL-style interface for continuous research sessions.
 """
 
 import random
-import re
-import sys
+import shutil
+import subprocess
+from pathlib import Path
 
 from rich.console import Console
-from rich.markdown import Markdown
 from rich.panel import Panel
+from rich.table import Table
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.styles import Style
-from pathlib import Path
 
 from tcm.agent.config import CONFIG_DIR
 
@@ -25,6 +26,9 @@ SLASH_COMMANDS = {
     "/help": "Show command reference with examples",
     "/tools": "List all tools with status",
     "/model": "Switch LLM model/provider",
+    "/attach": "Attach an image, audio, or PDF file (/attach <path>)",
+    "/attachments": "Show or clear active multimodal attachments (/attachments [clear])",
+    "/studio": "Show launch info for the TCM Studio web workbench",
     "/lang": "Set response language: en | zh | bi",
     "/config": "Show active runtime configuration",
     "/keys": "Show API key setup status",
@@ -44,6 +48,25 @@ PT_STYLE = Style.from_dict({
     "completion-menu.completion": "bg:#1a1a2e #cccccc",
     "completion-menu.completion.current": "bg:#333355 #ffffff bold",
 })
+
+
+def _copy_text_to_clipboard(text: str) -> bool:
+    """Copy text to system clipboard across macOS (pbcopy) and Linux (wl-copy, xclip, xsel)."""
+    candidates = [
+        ("pbcopy", ["pbcopy"]),
+        ("wl-copy", ["wl-copy"]),
+        ("xclip", ["xclip", "-selection", "clipboard"]),
+        ("xsel", ["xsel", "--clipboard", "--input"]),
+    ]
+    payload = text.encode("utf-8")
+    for binary, cmd in candidates:
+        if shutil.which(binary):
+            try:
+                subprocess.run(cmd, input=payload, check=True)
+                return True
+            except Exception:
+                continue
+    return False
 
 
 class SlashCompleter(Completer):
@@ -80,6 +103,9 @@ class InteractiveTerminal:
         suggestion = random.choice(DEFAULT_SUGGESTIONS)
         self.console.print()
         self.console.print(f"  [dim]Try: {suggestion}[/dim]")
+        active_atts = self.session.active_attachments()
+        if active_atts:
+            self.console.print(f"  [green]Attached {len(active_atts)} multimodal input(s).[/green] Use /attachments to inspect.")
         self.console.print()
 
         while True:
@@ -125,6 +151,12 @@ class InteractiveTerminal:
             from tcm.tools import registry, ensure_loaded
             ensure_loaded()
             self.console.print(registry.list_tools_table())
+        elif cmd == "/attach":
+            self._handle_attach(command)
+        elif cmd == "/attachments":
+            self._handle_attachments(command)
+        elif cmd == "/studio":
+            self._show_studio_info()
         elif cmd == "/lang":
             self._lang_switch(command)
         elif cmd == "/config":
@@ -142,12 +174,10 @@ class InteractiveTerminal:
             self.console.print(to_table(checks))
         elif cmd == "/copy":
             if self._last_answer:
-                try:
-                    import subprocess
-                    subprocess.run(["pbcopy"], input=self._last_answer.encode(), check=True)
+                if _copy_text_to_clipboard(self._last_answer):
                     self.console.print("  [green]Copied to clipboard.[/green]")
-                except Exception:
-                    self.console.print("  [yellow]Clipboard copy not available.[/yellow]")
+                else:
+                    self.console.print("  [yellow]Clipboard copy not available (install wl-copy, xclip, or pbcopy).[/yellow]")
             else:
                 self.console.print("  [dim]No answer to copy yet.[/dim]")
         elif cmd == "/export":
@@ -158,15 +188,81 @@ class InteractiveTerminal:
 
         return True
 
+    def _handle_attach(self, command: str):
+        """Attach an image, audio, or document file to the active session."""
+        parts = command.split(maxsplit=1)
+        if len(parts) < 2 or not parts[1].strip():
+            self.console.print("  Usage: [cyan]/attach <path-or-url>[/cyan]  (e.g. /attach tongue.jpg)")
+            return
+        raw_target = parts[1].strip().strip("'\"")
+        if not raw_target.startswith(("http://", "https://", "data:")):
+            target_path = Path(raw_target).expanduser()
+            if not target_path.exists():
+                self.console.print(f"  [red]File not found:[/red] {target_path}")
+                return
+            source = target_path
+        else:
+            source = raw_target
+
+        try:
+            att = self.session.add_attachment(source)
+            kind = getattr(att, "kind", None) or getattr(att, "modality", "file")
+            mime = getattr(att, "mime_type", "application/octet-stream")
+            label = getattr(att, "filename", None) or getattr(att, "name", None) or str(raw_target)
+            self.console.print(
+                f"  [green]Attached[/green] [cyan]{label}[/cyan] "
+                f"[dim]({kind}, {mime} — {len(self.session.active_attachments())} active)[/dim]"
+            )
+        except Exception as exc:
+            self.console.print(f"  [red]Failed to attach input:[/red] {exc}")
+
+    def _handle_attachments(self, command: str):
+        """Inspect or clear active multimodal attachments."""
+        parts = command.split(maxsplit=1)
+        if len(parts) > 1 and parts[1].strip().lower() in {"clear", "reset", "rm"}:
+            cleared = self.session.clear_attachments()
+            self.console.print(f"  [green]Cleared {cleared} attachment(s).[/green]")
+            return
+
+        active = self.session.active_attachments()
+        if not active:
+            self.console.print("  [dim]No active attachments. Add one with /attach <path>.[/dim]")
+            return
+
+        table = Table(title="Active Multimodal Attachments")
+        table.add_column("#", style="dim", width=3)
+        table.add_column("Filename / Source", style="cyan")
+        table.add_column("Kind")
+        table.add_column("MIME Type")
+        for idx, att in enumerate(active, 1):
+            label = getattr(att, "filename", None) or getattr(att, "name", None) or getattr(att, "source_path", "inline")
+            kind = getattr(att, "kind", None) or getattr(att, "modality", "file")
+            mime = getattr(att, "mime_type", "application/octet-stream")
+            table.add_row(str(idx), str(label), str(kind), str(mime))
+        self.console.print(table)
+        self.console.print("  [dim]Tip: run /attachments clear to remove active attachments.[/dim]")
+
+    def _show_studio_info(self):
+        """Display launch instructions for the Multimodal TCM Studio web workbench."""
+        self.console.print(Panel(
+            "[bold #c8a85c]Multimodal TCM Studio[/bold #c8a85c]\n\n"
+            "Launch the full interactive Four-Examinations (望闻问切), Tongue Colorimetry,\n"
+            "Network Pharmacology Graph, and 35+ SOTA Model Workbench in your browser:\n\n"
+            "  [cyan]tcm studio --open[/cyan]                  Start on http://127.0.0.1:8765/studio\n"
+            "  [cyan]tcm studio --port 8890 --open[/cyan]      Start on a custom port",
+            title="[bold]tcm studio[/bold]",
+            border_style="#c8a85c",
+        ))
+
     def _show_help(self):
         """Show help panel."""
         lines = ["[bold]Available Commands[/bold]\n"]
         for cmd, desc in SLASH_COMMANDS.items():
             lines.append(f"  [cyan]{cmd:15}[/cyan] {desc}")
         lines.append("\n[bold]Tips[/bold]")
-        lines.append("  • Use @tool.name to request specific tools")
-        lines.append("  • Use @tcmsp or @pubmed to request specific databases")
-        lines.append("  • Ask questions in English or Chinese")
+        lines.append("  • Use /attach tongue.jpg to include clinical/herb images in your query")
+        lines.append("  • Run `tcm studio --open` in a shell to launch the Web Studio workbench")
+        lines.append("  • Ask questions in English, Chinese, or Bilingual (/lang bi)")
         self.console.print(Panel("\n".join(lines), title="[bold]tcm help[/bold]", border_style="cyan"))
 
     def _lang_switch(self, command: str):
@@ -195,7 +291,7 @@ class InteractiveTerminal:
             /model           — show list and prompt for selection
             /model <name>    — switch directly to a model by ID or number
         """
-        from tcm.models.llm import list_models, MODEL_CATALOG, resolve_provider
+        from tcm.models.llm import list_models
 
         parts = command.split(maxsplit=1)
         models = list_models()
@@ -281,18 +377,21 @@ class InteractiveTerminal:
         from tcm.agent.synthesizer import synthesize_streaming
 
         self.console.print()
+        attachments = self.session.active_attachments()
+        if attachments:
+            self.console.print(f"  [dim]Multimodal inputs attached: {len(attachments)}[/dim]")
 
         # Plan
         try:
             with self.console.status("[bold cyan]Planning research...[/bold cyan]"):
-                plan = create_plan(self.session, query)
+                plan = create_plan(self.session, query, attachments=attachments or None)
         except Exception as exc:
             if self._is_auth_error(exc):
                 if self._handle_auth_error():
                     # Retry once
                     try:
                         with self.console.status("[bold cyan]Planning research...[/bold cyan]"):
-                            plan = create_plan(self.session, query)
+                            plan = create_plan(self.session, query, attachments=attachments or None)
                     except Exception as exc2:
                         if self._is_auth_error(exc2):
                             self._handle_auth_error(prompt=False)
@@ -313,7 +412,13 @@ class InteractiveTerminal:
         # Synthesize (streaming)
         self.console.print()
         answer_parts = []
-        for chunk in synthesize_streaming(self.session, query, plan, results):
+        for chunk in synthesize_streaming(
+            self.session,
+            query,
+            plan,
+            results,
+            attachments=attachments or None,
+        ):
             answer_parts.append(chunk)
             print(chunk, end="", flush=True)
         print()

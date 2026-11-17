@@ -1,20 +1,22 @@
+from __future__ import annotations
+
 """
 tcm CLI entry point.
 
 Usage:
     tcm                              # Interactive mode
     tcm "your question"              # Single query
+    tcm -i tongue.jpg "Analyze"      # Multimodal vision query
+    tcm studio --open                # Launch Multimodal TCM Studio web workbench
     tcm config set key value         # Configuration
     tcm data pull tcmsp              # Data management
 """
 
 import os
-import sys
 import getpass
-from typing import Any, Optional
+from typing import Any, List, Optional
 from pathlib import Path
 
-import click
 import typer
 from rich.console import Console
 from rich.panel import Panel
@@ -26,13 +28,14 @@ from tcm.agent.session import Session
 class TCMGroup(typer.core.TyperGroup):
     """Custom group that treats unrecognized commands as query text."""
 
-    def invoke(self, ctx: click.Context) -> Any:
+    def invoke(self, ctx: typer.Context) -> Any:
         # If the first positional arg is not a known subcommand,
         # move everything into ctx.args so the callback handles it as a query.
-        if ctx._protected_args:
-            cmd_name = click.utils.make_str(ctx._protected_args[0])
+        protected = getattr(ctx, "_protected_args", None)
+        if protected:
+            cmd_name = str(protected[0])
             if self.get_command(ctx, cmd_name) is None:
-                ctx.args = [*ctx._protected_args, *ctx.args]
+                ctx.args = [*protected, *ctx.args]
                 ctx._protected_args = []
         return super().invoke(ctx)
 
@@ -393,33 +396,59 @@ app.add_typer(model_app, name="model")
 
 
 @model_app.command("list")
-def model_list_cmd():
-    """List all supported models."""
+def model_list_cmd(
+    provider: Optional[str] = typer.Option(None, "--provider", "-p", help="Filter by provider (e.g. anthropic, openai, google, qwen, deepseek, ollama)"),
+    modality: Optional[str] = typer.Option(None, "--modality", help="Filter by modality: vision | audio | pdf | thinking | video | text"),
+    tier: Optional[str] = typer.Option(None, "--tier", help="Filter by model tier (frontier, flagship, balanced, fast, local, specialized)"),
+):
+    """List all supported models with optional provider, modality, and tier filters."""
     from tcm.models.llm import list_models
     from rich.table import Table
-
     from tcm.agent.config import Config
+
     cfg = Config.load()
     current = cfg.get("llm.model")
 
-    table = Table(title="Available Models")
+    try:
+        models = list_models(provider=provider, modality=modality, tier=tier)
+    except TypeError:
+        models = list_models(provider=provider)
+        if modality:
+            mod_norm = modality.strip().lower()
+            models = [
+                m for m in models
+                if mod_norm in [x.lower() for x in (getattr(m, "modalities", None) or ["text"])]
+            ]
+
+    title_parts = ["Available Models"]
+    if provider:
+        title_parts.append(f"provider={provider}")
+    if modality:
+        title_parts.append(f"modality={modality}")
+    if tier:
+        title_parts.append(f"tier={tier}")
+
+    table = Table(title=" · ".join(title_parts))
     table.add_column("#", style="dim", width=3)
     table.add_column("Model ID", style="cyan")
     table.add_column("Provider")
     table.add_column("Name")
+    table.add_column("Modalities", style="magenta")
     table.add_column("Context", justify="right")
     table.add_column("$/M in", justify="right")
     table.add_column("$/M out", justify="right")
     table.add_column("Description")
 
-    for i, m in enumerate(list_models(), 1):
+    for i, m in enumerate(models, 1):
         marker = " ●" if m.id == current else ""
         ctx = f"{m.context_window:,}"
+        mods = ", ".join(getattr(m, "modalities", None) or ["text"])
         table.add_row(
             str(i),
             f"{m.id}{marker}",
             m.provider,
             m.display_name,
+            mods,
             ctx,
             f"${m.input_price:.2f}",
             f"${m.output_price:.2f}",
@@ -428,13 +457,67 @@ def model_list_cmd():
     console.print(table)
 
 
+@model_app.command("recommend")
+def model_recommend_cmd(
+    task: str = typer.Argument(
+        "tongue_vision",
+        help="TCM task: tongue_vision | herb_identification | classical_ocr | network_pharmacology | clinical_safety | bilingual_synthesis | offline_local",
+    ),
+    modality: Optional[str] = typer.Option(None, "--modality", help="Optional required modality (vision, audio, pdf, thinking, video)"),
+):
+    """Recommend top SOTA foundation models for a specific TCM modality or clinical/research task."""
+    from rich.table import Table
+    from tcm.agent.config import Config
+    from tcm.models.multimodal import SUPPORTED_RECOMMENDATION_TASKS, recommend_models_for_task
+
+    norm_task = task.strip().lower()
+    if norm_task not in SUPPORTED_RECOMMENDATION_TASKS:
+        valid = ", ".join(SUPPORTED_RECOMMENDATION_TASKS)
+        console.print(f"  [yellow]Unknown task '{task}'.[/yellow] Supported tasks: [cyan]{valid}[/cyan]")
+        raise typer.Exit(code=2)
+
+    cfg = Config.load()
+    mods = [modality] if modality else None
+    recs = recommend_models_for_task(norm_task, modalities=mods)
+
+    table = Table(title=f"Recommended SOTA Models for '{norm_task}'")
+    table.add_column("#", style="dim", width=3)
+    table.add_column("Model ID", style="cyan")
+    table.add_column("Provider")
+    table.add_column("Tier")
+    table.add_column("Modalities", style="magenta")
+    table.add_column("Score", justify="right")
+    table.add_column("Key")
+    table.add_column("Clinical / Research Rationale")
+
+    for idx, rec in enumerate(recs, 1):
+        prov = str(rec.get("provider", ""))
+        has_key = prov == "ollama" or bool(cfg.llm_api_key(prov))
+        key_badge = "[green]✓[/green]" if has_key else "[dim]○[/dim]"
+        table.add_row(
+            str(idx),
+            str(rec.get("id", "")),
+            prov,
+            str(rec.get("tier", "")),
+            ", ".join(rec.get("modalities", [])),
+            f"{rec.get('score', 0):.1f}",
+            key_badge,
+            str(rec.get("reason", "")),
+        )
+
+    console.print(table)
+    if recs:
+        top_id = recs[0]["id"]
+        console.print(f"\n  [dim]Switch with:[/dim] [cyan]tcm model set {top_id}[/cyan]")
+
+
 @model_app.command("set")
 def model_set_cmd(
     model: str = typer.Argument(help="Model ID to use (e.g. gpt-4o, claude-sonnet-4-5-20250929)"),
 ):
     """Set the active model (provider is auto-detected)."""
     from tcm.agent.config import Config
-    from tcm.models.llm import resolve_provider, MODEL_CATALOG
+    from tcm.models.llm import MODEL_CATALOG
 
     cfg = Config.load()
     cfg.set("llm.model", model)
@@ -505,10 +588,77 @@ def model_show_cmd():
     console.print(f"  Provider: {provider}")
     if info:
         console.print(f"  Name:     {info.display_name}")
+        mods = ", ".join(getattr(info, "modalities", None) or ["text"])
+        console.print(f"  Modalities: {mods}")
         console.print(f"  Context:  {info.context_window:,} tokens")
         console.print(f"  Pricing:  ${info.input_price:.2f} / ${info.output_price:.2f} per M tokens")
     else:
         console.print("  [dim](model not in catalog)[/dim]")
+
+
+# ─── Studio command ───────────────────────────────────────────
+
+@app.command("studio")
+def studio_cmd(
+    host: str = typer.Option("127.0.0.1", "--host", "-H", help="Host interface to bind"),
+    port: int = typer.Option(8765, "--port", "-p", help="TCP port to bind"),
+    open_browser: bool = typer.Option(False, "--open/--no-open", help="Open Multimodal TCM Studio in default web browser"),
+    model: Optional[str] = typer.Option(None, "--model", "-m", help="SOTA LLM model ID to activate for Studio"),
+    language: Optional[str] = typer.Option(None, "--language", "--lang", help="Default Studio language: en | zh | bi"),
+):
+    """Launch the local Multimodal TCM Studio web workbench and REST API server."""
+    import threading
+    import webbrowser
+    from tcm.agent.config import Config
+    from tcm.studio.server import create_studio_server
+
+    cfg = Config.load()
+    if model:
+        cfg.set("llm.model", model)
+    if language:
+        try:
+            cfg.set("ui.language", language.lower())
+        except ValueError as exc:
+            console.print(f"[red]{exc}[/red]")
+            raise typer.Exit(code=2)
+
+    session = Session(config=cfg)
+    try:
+        server = create_studio_server(host=host, port=port, session=session)
+    except OSError as exc:
+        console.print(f"  [red]Failed to bind TCM Studio on {host}:{port}:[/red] {exc}")
+        raise typer.Exit(code=1)
+
+    site_url = f"{server.base_url}/"
+    studio_url = f"{server.base_url}/studio"
+    health_url = f"{server.base_url}/api/health"
+    provider = session.config.get("llm.provider", "anthropic")
+    tools_total = _count_tools()
+
+    console.print()
+    console.print(Panel(
+        f"[bold #c8a85c]TCM Studio v{__version__} — Multimodal Research & Clinical Workbench[/bold #c8a85c]\n\n"
+        f"  [bold]Official Website:[/bold]           [link={site_url}][cyan]{site_url}[/cyan][/link]\n"
+        f"  [bold]Multimodal Studio App:[/bold]      [link={studio_url}][bold green]{studio_url}[/bold green][/link]\n"
+        f"  [bold]REST API Health:[/bold]            [link={health_url}][dim]{health_url}[/dim][/link]\n\n"
+        f"  [bold]Active SOTA Model:[/bold]          [cyan]{session.current_model}[/cyan] [dim]({provider})[/dim]\n"
+        f"  [bold]Computational TCM Tools:[/bold]    [green]{tools_total}[/green] tools ready\n\n"
+        f"  [dim]Press Ctrl+C to stop the server.[/dim]",
+        title="[bold #c8a85c]tcm studio[/bold #c8a85c]",
+        border_style="#c8a85c",
+    ))
+
+    if open_browser:
+        timer = threading.Timer(0.35, lambda: webbrowser.open(studio_url))
+        timer.daemon = True
+        timer.start()
+
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        console.print("\n  [dim]Shutting down TCM Studio...[/dim]")
+    finally:
+        server.server_close()
 
 
 # ─── Report subcommand ───────────────────────────────────────
@@ -540,6 +690,22 @@ def version_cmd():
     console.print(f"tcm-cli v{__version__}")
 
 
+def _attach_cli_inputs(
+    session: Session,
+    images: Optional[List[Path]] = None,
+    audios: Optional[List[Path]] = None,
+    files: Optional[List[Path]] = None,
+) -> None:
+    """Validate and attach CLI --image / --audio / --file inputs to the session."""
+    for group in (images or [], audios or [], files or []):
+        for path in group:
+            expanded = path.expanduser()
+            if not expanded.exists():
+                console.print(f"[red]Attachment file not found:[/red] {expanded}")
+                raise typer.Exit(code=2)
+            session.add_attachment(expanded)
+
+
 # ─── Default callback (interactive mode or single query) ──────
 
 @app.callback(invoke_without_command=True)
@@ -549,6 +715,9 @@ def main(
     model: Optional[str] = typer.Option(None, "--model", "-m", help="LLM model to use"),
     continue_session: bool = typer.Option(False, "--continue", "-c", help="Continue last session"),
     language: Optional[str] = typer.Option(None, "--language", "--lang", help="Response language: en | zh | bi"),
+    image: Optional[List[Path]] = typer.Option(None, "--image", "-i", help="Attach image(s) for multimodal vision analysis (e.g. tongue/herb photo)"),
+    audio: Optional[List[Path]] = typer.Option(None, "--audio", help="Attach audio recording(s) for auscultation/voice analysis"),
+    file: Optional[List[Path]] = typer.Option(None, "--file", "-f", help="Attach PDF/document/prescription file(s)"),
 ):
     """TCM CLI — Traditional Chinese Medicine research agent."""
     if ctx.invoked_subcommand is not None:
@@ -570,6 +739,7 @@ def main(
             raise typer.Exit(code=2)
 
     session = Session(config=cfg, verbose=verbose)
+    _attach_cli_inputs(session, images=image, audios=audio, files=file)
 
     if query:
         # Single query mode
@@ -585,16 +755,18 @@ def _run_single_query(session: Session, query: str, verbose: bool):
     from tcm.agent.executor import execute_plan
     from tcm.agent.synthesizer import synthesize_streaming
 
+    attachments = session.active_attachments() or None
+
     try:
         with console.status("[bold cyan]Planning...[/bold cyan]"):
-            plan = create_plan(session, query)
+            plan = create_plan(session, query, attachments=attachments)
     except Exception as exc:
         if _is_auth_error(exc):
             if _handle_auth_error(session):
                 # Retry once after updating credentials
                 try:
                     with console.status("[bold cyan]Planning...[/bold cyan]"):
-                        plan = create_plan(session, query)
+                        plan = create_plan(session, query, attachments=attachments)
                 except Exception as exc2:
                     if _is_auth_error(exc2):
                         # Show help and exit
@@ -613,7 +785,7 @@ def _run_single_query(session: Session, query: str, verbose: bool):
         results = execute_plan(session, plan, verbose=verbose)
 
     console.print()
-    for chunk in synthesize_streaming(session, query, plan, results):
+    for chunk in synthesize_streaming(session, query, plan, results, attachments=attachments):
         print(chunk, end="", flush=True)
     print()
 
@@ -643,8 +815,9 @@ def _run_interactive(session: Session):
 def _count_tools() -> int:
     """Count available tools."""
     try:
-        from tcm.tools import registry, ensure_loaded
-        ensure_loaded()
+        from tcm.studio.server import _ensure_all_tools_loaded
+        from tcm.tools import registry
+        _ensure_all_tools_loaded()
         return len(registry.list_tools())
     except Exception:
         return 0

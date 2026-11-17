@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TCM Studio — Multimodal Four-Examinations, Network Pharmacology &amp; SOTA Agent Workbench</title>
+  <meta name="description" content="Interactive Multimodal TCM Studio: HTML5 Canvas CIE L*a*b* tongue &amp; herb colorimetry, force-directed network pharmacology graph, Eighteen Incompatibilities &amp; CYP safety validator, SVG meridian acupoint atlas, and 35+ SOTA model router." />
+  <meta property="og:title" content="TCM Studio — Multimodal TCM &amp; Computational Pharmacology Workbench" />
+  <meta property="og:description" content="Run Four-Examinations optical diagnostics, Jun-Chen-Zuo-Shi network pharmacology, clinical safety checks, and SOTA agent workflows." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="./assets/og.svg" />
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Noto+Sans+SC:wght@400;500;600&amp;family=Noto+Serif+SC:wght@500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./studio.css" />
+</head>
+<body class="studio-body">
+  <a class="skip-link" href="#studio-stage">Skip to Studio workspace</a>
+
+  <!-- ====================================================================
+       STUDIO TOP INSTRUMENT BAR
+       ==================================================================== -->
+  <header class="studio-topbar" id="studio-topbar">
+    <div class="studio-topbar-inner">
+      <div class="studio-brand-cluster">
+        <a class="back-folio-link" id="back-to-site-link" href="./index.html">&larr; Official Site</a>
+        <svg class="seal-svg" style="width:28px;height:28px;" viewBox="0 0 64 64" aria-hidden="true">
+          <rect x="3" y="3" width="58" height="58" rx="5" fill="var(--accent-cinnabar)" />
+          <rect x="7.5" y="7.5" width="49" height="49" rx="2.5" fill="none" stroke="#f9f6f0" stroke-width="2" />
+          <g stroke="#f9f6f0" stroke-width="3.2" stroke-linecap="square" fill="none">
+            <path d="M16 24H48" /><path d="M32 13V51" /><path d="M32 26L18 43" /><path d="M32 26L46 43" /><path d="M23 41H41" />
+          </g>
+        </svg>
+        <h1 class="studio-h1" id="studio-main-h1">TCM Studio <span class="brand-version">v0.2.0</span></h1>
+      </div>
+
+      <div class="studio-topbar-right">
+        <div class="engine-status-readout" id="studio-engine-badge" role="status" aria-live="polite">
+          &#9679; Interactive Browser Engine
+        </div>
+
+        <label for="studio-global-model" class="skip-link">Active SOTA Model</label>
+        <select class="topbar-model-select" id="studio-global-model" title="Active SOTA Foundation Model">
+          <option value="claude-opus-5-5">claude-opus-5-5</option>
+          <option value="claude-fable-5-2">claude-fable-5-2</option>
+          <option value="gpt-6-astra">gpt-6-astra</option>
+          <option value="gpt-6.1-terra">gpt-6.1-terra</option>
+          <option value="gpt-rosalind-research">gpt-rosalind-research</option>
+          <option value="gemini-3.6-flash">gemini-3.6-flash</option>
+          <option value="gemini-3.1-pro-preview">gemini-3.1-pro-preview</option>
+          <option value="deepseek-v4-pro">deepseek-v4-pro</option>
+          <option value="deepseek-v4.1-flash">deepseek-v4.1-flash</option>
+          <option value="qwen3.8-max">qwen3.8-max</option>
+          <option value="qwen-vl-max">qwen-vl-max</option>
+          <option value="glm-5.3">glm-5.3</option>
+          <option value="kimi-k3.1-pro">kimi-k3.1-pro</option>
+          <option value="grok-4.8">grok-4.8</option>
+          <option value="ollama/medgemma:27b">ollama/medgemma:27b</option>
+        </select>
+
+        <button type="button" class="ctrl-btn" id="studio-lang-btn" aria-label="Toggle EN / 中文">
+          <span id="studio-lang-label">中文</span>
+        </button>
+        <button type="button" class="ctrl-btn" id="studio-theme-btn" aria-label="Toggle Daylight / Sumi Night">
+          <span id="studio-theme-label">Sumi Night</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ====================================================================
+       MAIN SHELL: LEFT WORKSPACE RAIL + ACTIVE WORKSPACE STAGE
+       ==================================================================== -->
+  <div class="studio-shell">
+    <aside class="studio-rail" aria-label="Studio Workspaces">
+      <div>
+        <span class="rail-section-label" data-studio-i18n="railHeading">Workspaces · 工作台</span>
+        <nav class="rail-nav-list" role="tablist" aria-label="Workspace selector">
+          <button type="button" role="tab" aria-selected="true" class="rail-ws-btn is-active" id="ws-btn-lab" data-ws="lab">
+            <span class="rail-ws-idx">WORKSPACE I</span>
+            <span class="rail-ws-name" data-studio-i18n="ws1Name">Four-Examinations Lab</span>
+            <span class="rail-ws-zh">四诊多模态实验台</span>
+          </button>
+          <button type="button" role="tab" aria-selected="false" class="rail-ws-btn" id="ws-btn-pharmacology" data-ws="pharmacology">
+            <span class="rail-ws-idx">WORKSPACE II</span>
+            <span class="rail-ws-name" data-studio-i18n="ws2Name">Formula &amp; Network Graph</span>
+            <span class="rail-ws-zh">方剂配伍与网络药理</span>
+          </button>
+          <button type="button" role="tab" aria-selected="false" class="rail-ws-btn" id="ws-btn-atlas" data-ws="atlas">
+            <span class="rail-ws-idx">WORKSPACE III</span>
+            <span class="rail-ws-name" data-studio-i18n="ws3Name">Materia, Meridians &amp; Canon</span>
+            <span class="rail-ws-zh">本草・经穴・典籍</span>
+          </button>
+          <button type="button" role="tab" aria-selected="false" class="rail-ws-btn" id="ws-btn-agent" data-ws="agent">
+            <span class="rail-ws-idx">WORKSPACE IV</span>
+            <span class="rail-ws-name" data-studio-i18n="ws4Name">SOTA Agent Console</span>
+            <span class="rail-ws-zh">智能体研究终端</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="rail-colophon-box">
+        <div id="rail-engine-detail">Standalone Browser Colorimetry &amp; Bio-Graph Active.</div>
+        <code>$ tcm studio --open</code>
+      </div>
+    </aside>
+
+    <main class="studio-stage" id="studio-stage">
+      <!-- ================================================================
+           WORKSPACE 1: MULTIMODAL FOUR-EXAMINATIONS LAB
+           ================================================================ -->
+      <section class="ws-pane is-active" id="ws-pane-lab" aria-labelledby="ws-btn-lab">
+        <div class="ws-header-bar">
+          <div>
+            <span class="folio-rubric" style="margin-bottom:0.2rem;">Workspace I · Optical CIE L*a*b* Colorimetry, Pharmacognosy &amp; Sphygmography</span>
+            <h2 class="ws-title" data-studio-i18n="ws1Title">Multimodal Four-Examinations Lab (四诊多模态实验台)</h2>
+            <p class="ws-subtitle" data-studio-i18n="ws1Sub">
+              Upload any tongue, herb slice, or classical prescription photograph — or load calibrated museum/clinical reference plates — for real-time pixel CIE L*a*b* telemetry and Eight-Principle syndrome differentiation.
+            </p>
+          </div>
+          <button type="button" class="btn-cinnabar" id="export-clinical-report-btn">
+            Export Clinical Report (.md) &darr;
+          </button>
+        </div>
+
+        <!-- 4 Sub-tabs -->
+        <div class="subtab-strip" role="tablist" aria-label="Diagnostic sub-mode">
+          <button type="button" role="tab" aria-selected="true" class="subtab-btn is-active" id="lab-subtab-tongue" data-lab-subtab="tongue">
+            Tongue Vision (望舌象)
+          </button>
+          <button type="button" role="tab" aria-selected="false" class="subtab-btn" id="lab-subtab-herb" data-lab-subtab="herb">
+            Herb Specimen ID (饮片辨识)
+          </button>
+          <button type="button" role="tab" aria-selected="false" class="subtab-btn" id="lab-subtab-ocr" data-lab-subtab="ocr">
+            Prescription &amp; Ancient OCR (方笺古籍)
+          </button>
+          <button type="button" role="tab" aria-selected="false" class="subtab-btn" id="lab-subtab-fusion" data-lab-subtab="fusion">
+            Four-Examinations Fusion (四诊合参)
+          </button>
+        </div>
+
+        <div class="workbench-split">
+          <!-- Left Column: Canvas Viewport, Upload, Presets & Pulse/Symptom Inputs -->
+          <div>
+            <div class="folio-panel">
+              <div class="panel-bar">
+                <h3 class="panel-heading" id="lab-viewport-heading">Optical Inspection Viewport</h3>
+                <span class="status-tag-celadon" id="lab-active-mode-tag">CIE D65 Colorimeter</span>
+              </div>
+
+              <div class="canvas-dropzone" id="lab-canvas-dropzone">
+                <canvas id="lab-specimen-canvas" width="640" height="440" aria-label="Multimodal diagnostic specimen canvas"></canvas>
+                <div class="canvas-probe-hud">
+                  <span id="probe-coords-readout">Probe (x: 320, y: 220)</span>
+                  <span id="probe-rgb-readout">sRGB(220, 166, 164)</span>
+                  <span id="probe-lab-readout">CIE L* 72.8 · a* +18.2 · b* +8.4</span>
+                </div>
+              </div>
+
+              <div class="lab-toolbar">
+                <div style="display:flex;flex-wrap:wrap;gap:0.55rem;align-items:center;">
+                  <label class="file-upload-label" for="lab-image-upload">
+                    Upload Image / Drop File
+                  </label>
+                  <input type="file" id="lab-image-upload" accept="image/*" hidden />
+
+                  <label class="checkbox-inline" for="toggle-somatotopy-overlay">
+                    <input type="checkbox" id="toggle-somatotopy-overlay" checked />
+                    <span>Somatotopy / Landmark Overlay</span>
+                  </label>
+                </div>
+
+                <button type="button" class="btn-cinnabar" id="run-lab-analysis-btn">
+                  Analyze Specimen &rarr;
+                </button>
+              </div>
+
+              <!-- Clinical Reference Presets -->
+              <div style="margin-top:1.1rem;border-top:1px solid var(--border-hairline);padding-top:0.85rem;">
+                <span class="field-label">Calibrated Clinical &amp; Archival Reference Presets</span>
+                <div class="presets-grid">
+                  <button type="button" class="preset-specimen-btn is-active" id="preset-btn-pale" data-lab-preset="pale_scalloped">
+                    <strong>A · Pale Swollen Scalloped</strong>
+                    <span>淡白胖大齿痕舌 · 脾虚湿盛</span>
+                  </button>
+                  <button type="button" class="preset-specimen-btn" id="preset-btn-redgreasy" data-lab-preset="red_greasy">
+                    <strong>B · Red + Yellow Greasy Fur</strong>
+                    <span>红舌黄腻苔 · 肝胆脾胃湿热</span>
+                  </button>
+                  <button type="button" class="preset-specimen-btn" id="preset-btn-crimson" data-lab-preset="crimson_fissured">
+                    <strong>C · Crimson Fissured Peeled</strong>
+                    <span>红绛裂纹少苔舌 · 阴虚火旺</span>
+                  </button>
+                  <button type="button" class="preset-specimen-btn" id="preset-btn-stasis" data-lab-preset="violaceous_stasis">
+                    <strong>D · Violaceous Stasis Tongue</strong>
+                    <span>青紫瘀点舌 · 气滞血瘀</span>
+                  </button>
+                  <button type="button" class="preset-specimen-btn" id="preset-btn-huangqi" data-lab-preset="huangqi">
+                    <strong>Herb · Radix Astragali Slices</strong>
+                    <span>蒙古黄芪饮片 · 菊花心显微鉴别</span>
+                  </button>
+                  <button type="button" class="preset-specimen-btn" id="preset-btn-manuscript" data-lab-preset="bencao_folio">
+                    <strong>Canon · Bencao Woodblock Folio</strong>
+                    <span>《本草纲目·人参》刻本与汉制换算</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 28-Pulse + Ten-Questions Fusion Panel -->
+            <div class="folio-panel" id="lab-fusion-inputs-panel">
+              <div class="panel-bar">
+                <h3 class="panel-heading">28-Pulse &amp; Ten-Questions Inputs (切脉与十问合参)</h3>
+                <span class="mono" style="font-size:0.72rem;color:var(--accent-ochre);">Live Weighting</span>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                <div>
+                  <label class="field-label" for="lab-pulse-select">Radial Pulse Quality (二十八脉)</label>
+                  <select class="input-architectural" id="lab-pulse-select">
+                    <option value="soggy_weak">濡缓/细弱脉 · Soggy / Weak (Spleen Qi-Damp)</option>
+                    <option value="wiry_rapid">弦数/滑数脉 · Wiry-Slippery Rapid (Damp-Heat / Shaoyang)</option>
+                    <option value="thready_rapid">细数脉 · Thready-Rapid (Yin Deficiency Fire)</option>
+                    <option value="choppy_wiry">弦涩/结代脉 · Choppy-Wiry (Qi-Blood Stasis)</option>
+                    <option value="deep_slow">沉迟无力脉 · Deep-Slow (Yang Deficiency Cold)</option>
+                    <option value="floating_tight">浮紧脉 · Floating-Tight (Exterior Wind-Cold)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="field-label" for="lab-voice-select">Auscultation &amp; Olfaction (闻诊)</label>
+                  <select class="input-architectural" id="lab-voice-select">
+                    <option value="low_faint">Low faint speech, shortness of breath (少气懒言)</option>
+                    <option value="sighing">Frequent sighing, tense timbre (善太息·弦急)</option>
+                    <option value="dry_cough">Dry afternoon cough, hoarse voice (干咳少痰)</option>
+                    <option value="heavy_turbid">Heavy turbid sputum / halitosis (口气秽浊)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="margin-top:0.85rem;">
+                <span class="field-label">Ten-Questions Clinical Symptoms (十问歌症状标签 — Click to Toggle)</span>
+                <div class="symptom-chips-wrap" id="lab-symptom-chips">
+                  <button type="button" class="symptom-chip is-selected" data-symptom="fatigue">神疲乏力 Fatigue</button>
+                  <button type="button" class="symptom-chip is-selected" data-symptom="loose_stools">食少便溏 Loose Stools</button>
+                  <button type="button" class="symptom-chip" data-symptom="bitter_mouth">口苦咽干 Bitter Mouth</button>
+                  <button type="button" class="symptom-chip" data-symptom="rib_pain">胸胁胀痛 Rib Distension</button>
+                  <button type="button" class="symptom-chip" data-symptom="night_sweats">五心烦热盗汗 Night Sweats</button>
+                  <button type="button" class="symptom-chip" data-symptom="stabbing_pain">刺痛固定夜间盛 Fixed Stabbing Pain</button>
+                  <button type="button" class="symptom-chip" data-symptom="heavy_limbs">头身困重 Heavy Limbs</button>
+                  <button type="button" class="symptom-chip" data-symptom="insomnia">心悸失眠 Insomnia</button>
+                  <button type="button" class="symptom-chip" data-symptom="chills">畏寒肢冷 Cold Limbs</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Structured Quantitative Diagnostic Dossier -->
+          <div>
+            <div class="folio-panel">
+              <div class="panel-bar">
+                <h3 class="panel-heading" id="lab-report-heading">Quantitative Diagnostic Synthesis</h3>
+                <span class="status-tag-ochre" id="lab-icd-badge">ICD-11 TM1: SF50</span>
+              </div>
+
+              <!-- 4-Zone Regional CIE L*a*b* Readout -->
+              <span class="field-label" id="lab-zones-caption">Computed Regional Pixel CIE L*a*b* Means</span>
+              <div class="zone-lab-strip" id="lab-zone-strip">
+                <div class="zone-lab-cell">
+                  <span class="zone-lab-name">Tip · 心肺</span>
+                  <span class="zone-lab-vals" id="zone-tip-val">L*73 a*+14</span>
+                </div>
+                <div class="zone-lab-cell">
+                  <span class="zone-lab-name">Center · 脾胃</span>
+                  <span class="zone-lab-vals" id="zone-center-val">L*76 b*+12</span>
+                </div>
+                <div class="zone-lab-cell">
+                  <span class="zone-lab-name">Sides · 肝胆</span>
+                  <span class="zone-lab-vals" id="zone-sides-val">L*74 a*+12</span>
+                </div>
+                <div class="zone-lab-cell">
+                  <span class="zone-lab-name">Root · 肾下焦</span>
+                  <span class="zone-lab-vals" id="zone-root-val">L*77 b*+14</span>
+                </div>
+              </div>
+
+              <!-- Eight-Principles Quantitative Profile -->
+              <div style="margin-bottom:1.15rem;">
+                <span class="field-label">Eight-Principles Vector Profile (八纲辨证定量谱)</span>
+                <div class="bagang-bars">
+                  <div class="bagang-row">
+                    <div class="bagang-labels"><span>Cold 寒</span><span id="st-bg-heat-lbl">26%</span><span>Heat 热</span></div>
+                    <div class="bagang-track"><div class="bagang-fill" id="st-bg-heat-bar" style="width:26%"></div></div>
+                  </div>
+                  <div class="bagang-row">
+                    <div class="bagang-labels"><span>Deficiency 虚</span><span id="st-bg-exc-lbl">18%</span><span>Excess 实</span></div>
+                    <div class="bagang-track"><div class="bagang-fill ochre" id="st-bg-exc-bar" style="width:18%"></div></div>
+                  </div>
+                  <div class="bagang-row">
+                    <div class="bagang-labels"><span>Exterior 表</span><span id="st-bg-int-lbl">88% Interior</span><span>Interior 里</span></div>
+                    <div class="bagang-track"><div class="bagang-fill celadon" id="st-bg-int-bar" style="width:88%"></div></div>
+                  </div>
+                  <div class="bagang-row">
+                    <div class="bagang-labels"><span>Yin 阴</span><span id="st-bg-yang-lbl">32%</span><span>Yang 阳</span></div>
+                    <div class="bagang-track"><div class="bagang-fill" id="st-bg-yang-bar" style="width:32%"></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Syndrome Confidence Ranking -->
+              <div style="margin-bottom:1.15rem;">
+                <span class="field-label">Differentiated Syndrome Confidence Ranking (证候置信度排序)</span>
+                <div class="syndrome-rank-list" id="lab-syndrome-ranking">
+                  <!-- Populated by studio.js -->
+                </div>
+              </div>
+
+              <!-- Classical Formula + Modifications -->
+              <div class="kv-ledger" id="lab-prescription-ledger">
+                <div class="kv-row">
+                  <span class="kv-key">Primary Formula</span>
+                  <span class="kv-val" id="lab-rec-formula"><strong>参苓白术散合六君子汤</strong> (Shen Ling Bai Zhu San + Liu Jun Zi Tang)</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-key">Modifications</span>
+                  <span class="kv-val" id="lab-rec-mods">Add 砂仁 6g (후하 add near end), 苍术 9g &amp; 泽泻 9g for pronounced scalloped dental marks.</span>
+                </div>
+                <div class="kv-row">
+                  <span class="kv-key">Acupoint Synergy</span>
+                  <span class="kv-val" id="lab-rec-acupoints"><code>ST36 足三里</code>, <code>SP9 阴陵泉</code>, <code>CV12 中脘</code>, <code>SP6 三阴交</code></span>
+                </div>
+              </div>
+
+              <!-- Eastern Han Posology Converter Box (Always accessible, highlighted in OCR mode) -->
+              <div class="posology-converter" id="studio-ocr-posology-box" style="margin-top:1.1rem;">
+                <span class="specimen-box-label">Eastern Han (1兩 = 13.8g) &harr; Modern Clinical Posology Converter</span>
+                <div class="posology-controls">
+                  <div>
+                    <label class="field-label" for="studio-han-liang">Classical Weight (兩 Liang)</label>
+                    <input type="number" class="input-architectural" id="studio-han-liang" value="3" min="0.25" max="32" step="0.5" />
+                  </div>
+                  <div>
+                    <label class="field-label" for="studio-han-era">Era Standard</label>
+                    <select class="input-architectural" id="studio-han-era">
+                      <option value="13.8">Eastern Han (1兩 = 13.8g)</option>
+                      <option value="3.0">Modern Clinical Ratio (1兩 = 3.0g)</option>
+                      <option value="37.3">Ming/Qing Qian-Liang (1兩 = 37.3g)</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="recommender-result" id="studio-han-readout">
+                  3.0 兩 = <code>41.4 g</code> total decoction (<code>13.8 g</code> per single serving in three divided doses).
+                </div>
+              </div>
+
+              <div style="margin-top:1rem;display:flex;flex-wrap:wrap;gap:0.6rem;">
+                <button type="button" class="btn-architectural" id="lab-send-to-pharma-btn" style="height:36px;font-size:0.82rem;">
+                  Open Recommended Formula in Network Graph &rarr;
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           WORKSPACE 2: FORMULA COMPOSER & NETWORK PHARMACOLOGY GRAPH
+           ================================================================ -->
+      <section class="ws-pane" id="ws-pane-pharmacology" aria-labelledby="ws-btn-pharmacology">
+        <div class="ws-header-bar">
+          <div>
+            <span class="folio-rubric" style="margin-bottom:0.2rem;">Workspace II · Systems Pharmacology &amp; Deterministic Toxicology</span>
+            <h2 class="ws-title" data-studio-i18n="ws2Title">Formula Composer &amp; Network Pharmacology Graph (方剂配伍与网络药理)</h2>
+            <p class="ws-subtitle" data-studio-i18n="ws2Sub">
+              Explore multi-layer interactions from Sovereign/Minister herbs to bioactive compounds, UniProt targets, and KEGG pathways — while validating Eighteen Incompatibilities (十八反), Nineteen Antagonisms (十九畏), and CYP450 drug safety in real time.
+            </p>
+          </div>
+          <button type="button" class="ctrl-btn" id="pharma-recenter-btn">Re-Layout Graph</button>
+        </div>
+
+        <!-- Classical Formula Preset Bar -->
+        <div class="formula-selector-strip" role="group" aria-label="Load classical formula into graph">
+          <button type="button" class="formula-pill-btn is-active" data-studio-formula="sijunzi">四君子汤</button>
+          <button type="button" class="formula-pill-btn" data-studio-formula="buzhong">补中益气汤</button>
+          <button type="button" class="formula-pill-btn" data-studio-formula="xiaochaihu">小柴胡汤</button>
+          <button type="button" class="formula-pill-btn" data-studio-formula="huanglian">黄连解毒汤</button>
+          <button type="button" class="formula-pill-btn" data-studio-formula="xuefu">血府逐瘀汤</button>
+          <button type="button" class="formula-pill-btn" data-studio-formula="sini">四逆汤 (含附子先煎)</button>
+          <button type="button" class="formula-pill-btn is-hazard" data-studio-formula="shibafan">&#9888; 人参 + 藜芦 (十八反)</button>
+          <button type="button" class="formula-pill-btn is-hazard" data-studio-formula="warfarin">&#9888; 丹参 + Warfarin</button>
+        </div>
+
+        <div class="pharma-layout">
+          <!-- Left: Force-Directed Network Canvas + Node Inspector -->
+          <div class="folio-panel">
+            <div class="panel-bar">
+              <h3 class="panel-heading" id="pharma-graph-title">四君子汤 — Multi-Layer Pharmacology Graph</h3>
+              <span class="status-tag-celadon" id="pharma-stats-badge">18 Nodes · 24 Edges</span>
+            </div>
+
+            <div class="network-canvas-stage">
+              <canvas id="pharma-network-canvas" width="820" height="460" aria-label="Force-directed network pharmacology graph"></canvas>
+              <div class="network-legend-strip">
+                <span><i class="legend-dot" style="background:#bc3923"></i>Formula Root</span>
+                <span><i class="legend-dot" style="background:#9f712d"></i>君臣佐使 Herbs</span>
+                <span><i class="legend-dot" style="background:#356352"></i>Bioactive Compounds (OB&ge;30%)</span>
+                <span><i class="legend-dot" style="background:#251e18"></i>Human Protein Targets</span>
+                <span><i class="legend-dot" style="background:#7d5a44"></i>KEGG Pathways</span>
+              </div>
+            </div>
+
+            <div class="node-inspector-card" id="pharma-node-inspector">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;gap:0.75rem;">
+                <strong id="inspector-node-name" style="font-family:var(--font-serif);font-size:1.25rem;">Click or drag any graph node to inspect molecular pharmacology</strong>
+                <span class="status-tag-ochre" id="inspector-node-type">INTERACTIVE GRAPH</span>
+              </div>
+              <p id="inspector-node-detail" style="font-size:0.85rem;color:var(--ink-secondary);margin:0.4rem 0 0 0;">
+                Displays Oral Bioavailability (OB%), Drug-Likeness (DL), Molecular Weight (MW), UniProt symbol, or KEGG enrichment FDR.
+              </p>
+            </div>
+          </div>
+
+          <!-- Right: Custom Formula Builder & Safety Gate -->
+          <div class="folio-panel">
+            <div class="panel-bar">
+              <h3 class="panel-heading">Custom Formula Builder &amp; Safety Gate</h3>
+              <span class="mono" style="font-size:0.72rem;color:var(--ink-muted);">ChP 2025 Ruleset</span>
+            </div>
+
+            <div class="builder-add-row">
+              <select class="input-architectural" id="builder-herb-select" aria-label="Select herb to add">
+                <option value="人参">人参 Panax ginseng</option>
+                <option value="黄芪">黄芪 Astragalus</option>
+                <option value="白术">白术 Atractylodes</option>
+                <option value="茯苓">茯苓 Poria cocos</option>
+                <option value="甘草">甘草 Glycyrrhiza</option>
+                <option value="柴胡">柴胡 Bupleurum</option>
+                <option value="黄芩">黄芩 Scutellaria</option>
+                <option value="半夏">半夏 Pinellia</option>
+                <option value="黄连">黄连 Coptis</option>
+                <option value="当归">当归 Angelica sinensis</option>
+                <option value="川芎">川芎 Chuanxiong</option>
+                <option value="丹参">丹参 Salvia miltiorrhiza</option>
+                <option value="桃仁">桃仁 Prunus persica</option>
+                <option value="红花">红花 Carthamus</option>
+                <option value="白芍">白芍 Paeonia lactiflora</option>
+                <option value="生地黄">生地黄 Rehmannia</option>
+                <option value="牛膝">牛膝 Achyranthes</option>
+                <option value="麻黄">麻黄 Ephedra sinica</option>
+                <option value="附子">附子 Aconitum (Toxic)</option>
+                <option value="干姜">干姜 Zingiberis Rhizoma</option>
+                <option value="肉桂">肉桂 Cinnamomum</option>
+                <option value="细辛">细辛 Asarum</option>
+                <option value="藜芦">藜芦 Veratrum (十八反)</option>
+                <option value="甘遂">甘遂 Kansui (十八反)</option>
+                <option value="海藻">海藻 Sargassum (十八反)</option>
+                <option value="贝母">贝母 Fritillaria (十八反)</option>
+                <option value="五灵脂">五灵脂 Trogopterus (十九畏)</option>
+                <option value="赤石脂">赤石脂 Halloysitum (十九畏)</option>
+              </select>
+              <input type="number" class="input-architectural" id="builder-herb-dose" value="9" min="0.3" max="60" step="0.5" aria-label="Dosage in grams" />
+              <select class="input-architectural" id="builder-herb-role" aria-label="Jun Chen Zuo Shi role">
+                <option value="君">君 Sovereign</option>
+                <option value="臣">臣 Minister</option>
+                <option value="佐" selected>佐 Assistant</option>
+                <option value="使">使 Courier</option>
+              </select>
+              <button type="button" class="btn-cinnabar" id="builder-add-btn" style="height:36px;">+ Add</button>
+            </div>
+
+            <div class="builder-herb-list" id="builder-herb-list" aria-label="Current prescription herbs">
+              <!-- Populated dynamically -->
+            </div>
+
+            <!-- Co-administered Western Medications & Pregnancy -->
+            <div style="border-top:1px solid var(--border-hairline);padding-top:0.8rem;margin-bottom:0.9rem;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">
+                <span class="field-label" style="margin:0;">Co-Administered Western Rx</span>
+                <label class="checkbox-inline" for="builder-pregnancy-toggle" style="font-weight:600;color:var(--accent-cinnabar);">
+                  <input type="checkbox" id="builder-pregnancy-toggle" />
+                  <span>Pregnant Patient (妊娠禁忌)</span>
+                </label>
+              </div>
+              <div class="rx-meds-grid" id="builder-rx-meds">
+                <label class="checkbox-inline"><input type="checkbox" value="Warfarin" data-rx-med /> Warfarin (CYP2C9/INR)</label>
+                <label class="checkbox-inline"><input type="checkbox" value="Digoxin" data-rx-med /> Digoxin (K+ Sensitive)</label>
+                <label class="checkbox-inline"><input type="checkbox" value="Aspirin" data-rx-med /> Aspirin / Clopidogrel</label>
+                <label class="checkbox-inline"><input type="checkbox" value="Cyclosporine" data-rx-med /> Cyclosporine (CYP3A4)</label>
+                <label class="checkbox-inline"><input type="checkbox" value="Phenelzine" data-rx-med /> Phenelzine (MAOI)</label>
+                <label class="checkbox-inline"><input type="checkbox" value="Hypoglycemics" data-rx-med /> Insulin / Sulfonylurea</label>
+              </div>
+            </div>
+
+            <span class="field-label">Live Toxicology &amp; Compatibility Audit</span>
+            <div class="safety-alerts-stack" id="builder-safety-panel">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           WORKSPACE 3: MATERIA MEDICA, MERIDIAN ACUPOINTS & CLASSICS
+           ================================================================ -->
+      <section class="ws-pane" id="ws-pane-atlas" aria-labelledby="ws-btn-atlas">
+        <div class="ws-header-bar">
+          <div>
+            <span class="folio-rubric" style="margin-bottom:0.2rem;">Workspace III · WHO Acupoint Topography, ChP Monographs &amp; Classical Treatises</span>
+            <h2 class="ws-title" data-studio-i18n="ws3Title">Materia Medica, Meridian Acupoints &amp; Classics (本草・经穴・典籍)</h2>
+            <p class="ws-subtitle" data-studio-i18n="ws3Sub">
+              Click any acupoint on the Anterior/Posterior Meridian Atlas or search across core herbs, formulas, and canonical clauses from <em>Huangdi Neijing</em>, <em>Shanghan Lun</em>, <em>Jin Gui Yao Lue</em>, <em>Shennong Bencao Jing</em>, and <em>Bencao Gangmu</em>.
+            </p>
+          </div>
+        </div>
+
+        <div class="atlas-layout">
+          <!-- Left: Interactive Anterior/Posterior SVG Meridian Atlas -->
+          <div class="folio-panel">
+            <div class="panel-bar">
+              <h3 class="panel-heading">Interactive Meridian &amp; Acupoint Atlas</h3>
+              <div style="display:flex;gap:0.35rem;">
+                <button type="button" class="ctrl-btn" id="atlas-view-anterior" style="height:28px;font-size:0.74rem;border-color:var(--accent-cinnabar);color:var(--accent-cinnabar);">Anterior 正面</button>
+                <button type="button" class="ctrl-btn" id="atlas-view-posterior" style="height:28px;font-size:0.74rem;">Posterior 背面</button>
+              </div>
+            </div>
+
+            <div class="meridian-svg-stage">
+              <!-- Anterior & Posterior Human Meridian SVG -->
+              <svg id="meridian-atlas-svg" viewBox="0 0 340 520" role="img" aria-label="Human meridian acupoint atlas">
+                <!-- Architectural Silhouette (Shared Anterior/Posterior Contour) -->
+                <g fill="var(--bg-elevated)" stroke="var(--border-ink)" stroke-width="1.5">
+                  <!-- Head & Neck -->
+                  <ellipse cx="170" cy="48" rx="26" ry="32" />
+                  <path d="M158,78 L158,96 L182,96 L182,78" />
+                  <!-- Torso & Arms & Legs -->
+                  <path d="M118,102 C136,94 204,94 222,102 L258,214 L240,222 L214,138 L210,262 L218,482 L192,482 L176,288 L164,288 L148,482 L122,482 L130,262 L126,138 L100,222 L82,214 Z" />
+                </g>
+
+                <!-- ANTERIOR MERIDIAN LINES & ACUPOINTS -->
+                <g id="svg-atlas-anterior">
+                  <!-- Conception Vessel (Ren Mai) midline -->
+                  <line x1="170" y1="16" x2="170" y2="275" stroke="var(--accent-cinnabar)" stroke-width="1.2" stroke-dasharray="3 3" opacity="0.65" />
+                  <!-- Stomach / Spleen / Liver leg lines -->
+                  <path d="M154,150 L152,256 L142,362 L136,476" fill="none" stroke="var(--accent-ochre)" stroke-width="1.1" opacity="0.6" />
+                  <path d="M186,150 L188,256 L198,362 L204,476" fill="none" stroke="var(--accent-ochre)" stroke-width="1.1" opacity="0.6" />
+                  <!-- Arm Yin/Yang lines -->
+                  <path d="M122,118 L104,172 L91,216" fill="none" stroke="var(--accent-celadon)" stroke-width="1.1" opacity="0.65" />
+                  <path d="M218,118 L236,172 L249,216" fill="none" stroke="var(--accent-celadon)" stroke-width="1.1" opacity="0.65" />
+
+                  <g class="acupoint-node is-active" data-point-code="ST36"><circle cx="139" cy="366" r="5" fill="var(--accent-cinnabar)" /><text x="126" y="370" text-anchor="end" font-family="var(--font-mono)" font-size="9.5" fill="var(--ink-primary)">ST36 足三里</text></g>
+                  <g class="acupoint-node" data-point-code="GV20"><circle cx="170" cy="17" r="4.8" fill="var(--accent-ochre)" /><text x="180" y="20" font-family="var(--font-mono)" font-size="9.5" fill="var(--ink-primary)">GV20 百会</text></g>
+                  <g class="acupoint-node" data-point-code="LI11"><circle cx="107" cy="166" r="4.8" fill="var(--accent-celadon)" /><text x="97" y="164" text-anchor="end" font-family="var(--font-mono)" font-size="9.5" fill="var(--ink-primary)">LI11 曲池</text></g>
+                  <g class="acupoint-node" data-point-code="LU7"><circle cx="96" cy="198" r="4.5" fill="var(--accent-celadon)" /><text x="86" y="198" text-anchor="end" font-family="var(--font-mono)" font-size="9.5" fill="var(--ink-primary)">LU7 列缺</text></g>
+                  <g class="acupoint-node" data-point-code="PC6"><circle cx="242" cy="194" r="4.8" fill="var(--accent-celadon)" /><text x="252" y="196" font-family="var(--font-mono)" font-size="9.5" fill="var(--ink-primary)">PC6 内关</text></g>
+                  <g class="acupoint-node" data-point-code="HT7"><circle cx="246" cy="212" r="4.5" fill="var(--accent-cinnabar)" /><text x="256" y="215" font-family="var(--font-mono)" font-size="9.5" fill="var(--ink-primary)">HT7 神门</text></g>
+                  <g class="acupoint-node" data-point-code="LI4"><circle cx="88" cy="220" r="4.8" fill="var(--accent-ochre)" /><text x="78" y="224" text-anchor="end" font-family="var(--font-mono)" font-size="9.5" fill="var(--ink-primary)">LI4 合谷</text></g>
+                  <g class="acupoint-node" data-point-code="CV12"><circle cx="170" cy="176" r="4.8" fill="var(--accent-cinnabar)" /><text x="180" y="179" font-family="var(--font-mono)" font-size="9.5" fill="var(--ink-primary)">CV12 中脘</text></g>
+                  <g class="acupoint-node" data-point-code="ST25"><circle cx="153" cy="212" r="4.5" fill="var(--accent-ochre)" /><text x="143" y="215" text-anchor="end" font-family="var(--font-mono)" font-size="9.5" fill="var(--ink-primary)">ST25 天枢</text></g>
+                  <g class="acupoint-node" data-point-code="CV4"><circle cx="170" cy="242" r="4.8" fill="var(--accent-cinnabar)" /><text x="180" y="246" font-family="var(--font-mono)" font-size="9.5" fill="var(--ink-primary)">CV4 关元</text></g>
+                  <g class="acupoint-node" data-point-code="SP9"><circle cx="195" cy="358" r="4.5" fill="var(--accent-celadon)" /><text x="205" y="360" font-family="var(--font-mono)" font-size="9.5" fill="var(--ink-primary)">SP9 阴陵泉</text></g>
+                  <g class="acupoint-node" data-point-code="GB34"><circle cx="209" cy="368" r="4.5" fill="var(--accent-ochre)" /><text x="219" y="374" font-family="var(--font-mono)" font-size="9.5" fill="var(--ink-primary)">GB34 阳陵泉</text></g>
+                  <g class="acupoint-node" data-point-code="ST40"><circle cx="136" cy="404" r="4.5" fill="var(--accent-ochre)" /><text x="125" y="408" text-anchor="end" font-family="var(--font-mono)" font-size="9.5" fill="var(--ink-primary)">ST40 丰隆</text></g>
+                  <g class="acupoint-node" data-point-code="SP6"><circle cx="196" cy="442" r="4.8" fill="var(--accent-celadon)" /><text x="206" y="445" font-family="var(--font-mono)" font-size="9.5" fill="var(--ink-primary)">SP6 三阴交</text></g>
+                  <g class="acupoint-node" data-point-code="KI3"><circle cx="193" cy="468" r="4.5" fill="var(--accent-celadon)" /><text x="204" y="472" font-family="var(--font-mono)" font-size="9.5" fill="var(--ink-primary)">KI3 太溪</text></g>
+                  <g class="acupoint-node" data-point-code="LR3"><circle cx="134" cy="480" r="4.8" fill="var(--accent-cinnabar)" /><text x="122" y="484" text-anchor="end" font-family="var(--font-mono)" font-size="9.5" fill="var(--ink-primary)">LR3 太冲</text></g>
+                </g>
+
+                <!-- POSTERIOR MERIDIAN LINES & ACUPOINTS -->
+                <g id="svg-atlas-posterior" style="display:none;">
+                  <!-- Governor Vessel (Du Mai) & Bladder Meridian lines -->
+                  <line x1="170" y1="17" x2="170" y2="276" stroke="var(--accent-cinnabar)" stroke-width="1.3" stroke-dasharray="3 3" />
+                  <line x1="154" y1="76" x2="154" y2="472" stroke="var(--accent-celadon)" stroke-width="1.1" opacity="0.65" />
+                  <line x1="186" y1="76" x2="186" y2="472" stroke="var(--accent-celadon)" stroke-width="1.1" opacity="0.65" />
+
+                  <g class="acupoint-node" data-point-code="GV20"><circle cx="170" cy="17" r="5" fill="var(--accent-cinnabar)" /><text x="182" y="21" font-family="var(--font-mono)" font-size="10" fill="var(--ink-primary)">GV20 百会</text></g>
+                  <g class="acupoint-node" data-point-code="GB20"><circle cx="152" cy="76" r="5" fill="var(--accent-ochre)" /><text x="140" y="79" text-anchor="end" font-family="var(--font-mono)" font-size="10" fill="var(--ink-primary)">GB20 风池</text></g>
+                  <g class="acupoint-node" data-point-code="LI11"><circle cx="107" cy="166" r="4.8" fill="var(--accent-celadon)" /><text x="95" y="168" text-anchor="end" font-family="var(--font-mono)" font-size="10" fill="var(--ink-primary)">LI11 曲池</text></g>
+                  <g class="acupoint-node" data-point-code="BL23"><circle cx="154" cy="214" r="5.2" fill="var(--accent-cinnabar)" /><text x="142" y="217" text-anchor="end" font-family="var(--font-mono)" font-size="10" fill="var(--ink-primary)">BL23 肾俞</text></g>
+                  <g class="acupoint-node" data-point-code="GB34"><circle cx="209" cy="368" r="4.8" fill="var(--accent-ochre)" /><text x="220" y="371" font-family="var(--font-mono)" font-size="10" fill="var(--ink-primary)">GB34 阳陵泉</text></g>
+                  <g class="acupoint-node" data-point-code="KI3"><circle cx="192" cy="468" r="4.8" fill="var(--accent-celadon)" /><text x="204" y="472" font-family="var(--font-mono)" font-size="10" fill="var(--ink-primary)">KI3 太溪</text></g>
+                </g>
+              </svg>
+            </div>
+
+            <!-- Selected Acupoint Detail Card -->
+            <div class="node-inspector-card" id="acupoint-detail-card">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;">
+                <strong id="acu-card-title" style="font-family:var(--font-serif);font-size:1.3rem;">ST36 足三里 (Zusanli)</strong>
+                <span class="status-tag-celadon" id="acu-card-meridian">Stomach Meridian · He-Sea</span>
+              </div>
+              <p id="acu-card-loc" style="font-size:0.84rem;color:var(--ink-secondary);margin:0.4rem 0;">
+                <strong>WHO Location:</strong> Anterior aspect of the leg, 3 B-cun inferior to ST35 (Dubi), one finger-breadth lateral to the anterior crest of the tibia.
+              </p>
+              <p id="acu-card-ind" style="font-size:0.84rem;color:var(--ink-primary);margin:0;">
+                <strong>Needling &amp; Actions:</strong> Perpendicular 1.0–1.5 cun. Fortifies Spleen-Stomach Qi, harmonizes intestines, modulates vagal-adrenal anti-inflammatory reflex (ChAT+ T-cell/TNF axis).
+              </p>
+            </div>
+          </div>
+
+          <!-- Right: Unified Materia Medica, Formula, Acupoint & Classical Canon Search -->
+          <div class="folio-panel">
+            <div class="panel-bar">
+              <h3 class="panel-heading">Unified Materia, Acupoint &amp; Classical Canon Compendium</h3>
+              <span class="mono" style="font-size:0.72rem;color:var(--ink-muted);" id="atlas-count-label">Showing all entries</span>
+            </div>
+
+            <div style="margin-bottom:0.85rem;">
+              <label class="skip-link" for="atlas-search-input">Search herbs, acupoints, formulas, or classical canon</label>
+              <input type="search" class="input-architectural" id="atlas-search-input" placeholder="Search 黄芪, ST36, 伤寒论, 补中益气汤, Shennong, insomnia, AMPK..." />
+            </div>
+
+            <div class="filter-pills-row" style="margin-bottom:0.9rem;">
+              <button type="button" class="filter-pill is-active" data-atlas-cat="all">All</button>
+              <button type="button" class="filter-pill" data-atlas-cat="acupoint">Acupoints (18)</button>
+              <button type="button" class="filter-pill" data-atlas-cat="herb">Herbs</button>
+              <button type="button" class="filter-pill" data-atlas-cat="formula">Formulas</button>
+              <button type="button" class="filter-pill" data-atlas-cat="classic">Classical Canon</button>
+            </div>
+
+            <div class="atlas-results-list" id="atlas-results-list">
+              <!-- Populated by studio.js -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           WORKSPACE 4: SOTA AGENT CONSOLE & MODEL ROUTER
+           ================================================================ -->
+      <section class="ws-pane" id="ws-pane-agent" aria-labelledby="ws-btn-agent">
+        <div class="ws-header-bar">
+          <div>
+            <span class="folio-rubric" style="margin-bottom:0.2rem;">Workspace IV · Autonomous ReAct Planning, Tool Execution &amp; Grounded Citations</span>
+            <h2 class="ws-title" data-studio-i18n="ws4Title">SOTA Agent Console &amp; Model Router (智能体研究终端)</h2>
+            <p class="ws-subtitle" data-studio-i18n="ws4Sub">
+              Execute multi-step TCM &amp; computational pharmacology investigations with transparent Plan &rarr; Tool Trace &rarr; Grounded Synthesis inspection and Markdown dossier export.
+            </p>
+          </div>
+        </div>
+
+        <div class="agent-console-frame">
+          <!-- Agent Control Bar -->
+          <div class="agent-toolbar">
+            <div class="agent-toolbar-group">
+              <label class="field-label" for="agent-model-select" style="margin:0;">Model:</label>
+              <select class="input-architectural" id="agent-model-select" style="width:auto;height:32px;font-size:0.78rem;">
+                <option value="claude-opus-5-5">claude-opus-5-5 (Anthropic · 1M)</option>
+                <option value="claude-fable-5-2">claude-fable-5-2 (Anthropic · 1M)</option>
+                <option value="gpt-6-astra">gpt-6-astra (OpenAI · 1.05M)</option>
+                <option value="gpt-6.1-terra">gpt-6.1-terra (OpenAI · Vision)</option>
+                <option value="gpt-rosalind-research">gpt-rosalind-research (Life Sciences)</option>
+                <option value="gemini-3.6-flash">gemini-3.6-flash (Google · Omni 1M)</option>
+                <option value="gemini-3.1-pro-preview">gemini-3.1-pro-preview (Google · 1M)</option>
+                <option value="deepseek-v4-pro">deepseek-v4-pro (DeepSeek · TCM MoE)</option>
+                <option value="deepseek-v4.1-flash">deepseek-v4.1-flash (DeepSeek · Fast)</option>
+                <option value="qwen3.8-max">qwen3.8-max (Alibaba · Philology 1M)</option>
+                <option value="qwen-vl-max">qwen-vl-max (Alibaba · Ancient OCR)</option>
+                <option value="glm-5.3">glm-5.3 (Zhipu · Clinical Agent)</option>
+                <option value="kimi-k3.1-pro">kimi-k3.1-pro (Moonshot · 1M)</option>
+                <option value="grok-4.8">grok-4.8 (xAI · Scientific 1M)</option>
+                <option value="ollama/medgemma:27b">ollama/medgemma:27b (Local Private)</option>
+              </select>
+
+              <label class="field-label" for="agent-lang-select" style="margin:0 0 0 0.4rem;">Output:</label>
+              <select class="input-architectural" id="agent-lang-select" style="width:auto;height:32px;font-size:0.78rem;">
+                <option value="bilingual">Bilingual 双语</option>
+                <option value="en">English (EN)</option>
+                <option value="zh">中文 (ZH)</option>
+              </select>
+            </div>
+
+            <div class="agent-toolbar-group">
+              <button type="button" class="ctrl-btn" id="agent-export-btn" style="height:32px;">Export Session (.md)</button>
+              <button type="button" class="ctrl-btn" id="agent-clear-btn" style="height:32px;">Clear</button>
+            </div>
+          </div>
+
+          <!-- Sample Research Prompts -->
+          <div class="agent-samples-bar" aria-label="Sample research queries">
+            <button type="button" class="sample-prompt-btn" data-sample-q="Compare 黄芪 (Astragalus) and 人参 (Panax ginseng) network pharmacology targets and clinical synergy in Spleen-Qi deficiency with T2DM insulin resistance.">
+              1 · 黄芪 vs 人参 Network Pharmacology in T2DM
+            </button>
+            <button type="button" class="sample-prompt-btn" data-sample-q="Patient has alternating chills and fever, bitter taste, rib-side fullness, red-margined tongue, and Wiry pulse. Differentiate Shanghan Lun clause and convert 小柴胡汤 Eastern Han dosage.">
+              2 · Shaoyang Wiry Pulse + 小柴胡汤 Han Posology
+            </button>
+            <button type="button" class="sample-prompt-btn" data-sample-q="Audit clinical safety of 血府逐瘀汤 plus 丹参 in a post-PCI patient taking Warfarin 5mg and Aspirin 81mg.">
+              3 · 血府逐瘀汤 + Warfarin/Aspirin CYP Safety Audit
+            </button>
+            <button type="button" class="sample-prompt-btn" data-sample-q="Design an integrative herbal + meridian acupoint protocol for chronic insomnia from Heart-Kidney non-interaction (心肾不交) with crimson fissured tongue.">
+              4 · Heart-Kidney Insomnia Herbal + Acupoint Protocol
+            </button>
+          </div>
+
+          <!-- Step-by-Step Execution Transcript -->
+          <div class="agent-transcript" id="agent-transcript" aria-live="polite">
+            <!-- Initial seeded scholarly research demonstration populated by studio.js -->
+          </div>
+
+          <!-- Composer Input Bar -->
+          <form class="agent-composer" id="agent-composer-form">
+            <div class="agent-attachment-preview" id="agent-attachment-chip">
+              <span id="agent-attachment-name">specimen.jpg</span>
+              <button type="button" class="herb-remove-btn" id="agent-attachment-clear" aria-label="Remove attached image">&times;</button>
+            </div>
+
+            <div class="composer-input-row">
+              <label class="file-upload-label" for="agent-image-input" style="height:44px;">
+                + Attach Image
+              </label>
+              <input type="file" id="agent-image-input" accept="image/*" hidden />
+
+              <label class="skip-link" for="agent-query-input">Enter TCM or pharmacology research query</label>
+              <textarea
+                class="agent-textarea"
+                id="agent-query-input"
+                placeholder="Ask a multimodal TCM, classical canon, acupoint, or network pharmacology question..."
+              ></textarea>
+
+              <button type="submit" class="btn-cinnabar btn-lg" id="agent-submit-btn">
+                Execute Research &rarr;
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./studio.js"></script>
+</body>
+</html>

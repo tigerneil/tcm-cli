@@ -1,3 +1,3 @@
-"""tcm-cli: An autonomous agent for Traditional Chinese Medicine research and discovery."""
+"""tcm-cli: Multimodal TCM Studio & autonomous agent for Traditional Chinese Medicine research and clinical application."""
 
-__version__ = "0.1.4"
+__version__ = "0.2.0"

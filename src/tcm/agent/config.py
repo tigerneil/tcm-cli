@@ -1,16 +1,18 @@
+from __future__ import annotations
+
 """
 Configuration management for tcm.
 
 Config is stored at ~/.tcm/config.json and manages:
-- LLM provider settings (Anthropic, OpenAI)
+- LLM provider settings across 15 cloud and local providers
 - Data directory paths (TCMSP, TCMID, etc.)
-- Output preferences
+- Output & Studio preferences
 - Agent settings
 """
 
 import json
-import os
 import logging
+import os
 from pathlib import Path
 from typing import Any, Optional
 
@@ -18,11 +20,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from rich.table import Table
+from rich.table import Table  # noqa: E402
 
 CONFIG_DIR = Path.home() / ".tcm"
 CONFIG_FILE = CONFIG_DIR / "config.json"
-# Providers currently supported by the runtime LLM client
+# Providers supported by the runtime LLM client
 VALID_LLM_PROVIDERS = frozenset({
     "anthropic",
     "openai",
@@ -31,27 +33,110 @@ VALID_LLM_PROVIDERS = frozenset({
     "minimax",
     "qwen",
     "google",
+    "glm",
+    "xai",
     "mistral",
     "groq",
     "cohere",
+    "together",
+    "openrouter",
+    "ollama",
 })
 logger = logging.getLogger("tcm.config")
 
-# Additional common providers for key storage/UX (may not be runtime-supported yet)
+# Provider key storage and environment lookup specifications
 PROVIDER_SPECS = {
-    "anthropic": {"label": "Anthropic", "config_key": "llm.api_key", "env": "ANTHROPIC_API_KEY", "primary": True},
-    "openai":    {"label": "OpenAI", "config_key": "llm.openai_api_key", "env": "OPENAI_API_KEY", "primary": False},
-    "google":    {"label": "Google (Gemini)", "config_key": "llm.google_api_key", "env": "GOOGLE_API_KEY", "primary": False},
-    "mistral":   {"label": "Mistral", "config_key": "llm.mistral_api_key", "env": "MISTRAL_API_KEY", "primary": False},
-    "groq":      {"label": "Groq", "config_key": "llm.groq_api_key", "env": "GROQ_API_KEY", "primary": False},
-    "cohere":    {"label": "Cohere", "config_key": "llm.cohere_api_key", "env": "COHERE_API_KEY", "primary": False},
-    "together":  {"label": "Together AI", "config_key": "llm.together_api_key", "env": "TOGETHER_API_KEY", "primary": False},
-    "ollama":    {"label": "Ollama (local)", "config_key": "llm.ollama_api_key", "env": None, "primary": False},  # typically not needed
-    # Newly added providers
-    "deepseek":  {"label": "DeepSeek", "config_key": "llm.deepseek_api_key", "env": "DEEPSEEK_API_KEY", "primary": False},
-    "kimi":      {"label": "Moonshot Kimi", "config_key": "llm.kimi_api_key", "env": "MOONSHOT_API_KEY", "primary": False},
-    "minimax":   {"label": "MiniMax", "config_key": "llm.minimax_api_key", "env": "MINIMAX_API_KEY", "primary": False},
-    "qwen":      {"label": "Qwen (DashScope)", "config_key": "llm.qwen_api_key", "env": "DASHSCOPE_API_KEY", "primary": False},
+    "anthropic": {
+        "label": "Anthropic",
+        "config_key": "llm.api_key",
+        "env": "ANTHROPIC_API_KEY",
+        "primary": True,
+    },
+    "openai": {
+        "label": "OpenAI",
+        "config_key": "llm.openai_api_key",
+        "env": "OPENAI_API_KEY",
+        "primary": False,
+    },
+    "google": {
+        "label": "Google (Gemini)",
+        "config_key": "llm.google_api_key",
+        "env": "GOOGLE_API_KEY",
+        "primary": False,
+    },
+    "deepseek": {
+        "label": "DeepSeek",
+        "config_key": "llm.deepseek_api_key",
+        "env": "DEEPSEEK_API_KEY",
+        "primary": False,
+    },
+    "qwen": {
+        "label": "Qwen (DashScope)",
+        "config_key": "llm.qwen_api_key",
+        "env": "DASHSCOPE_API_KEY",
+        "primary": False,
+    },
+    "kimi": {
+        "label": "Moonshot Kimi",
+        "config_key": "llm.kimi_api_key",
+        "env": "MOONSHOT_API_KEY",
+        "primary": False,
+    },
+    "glm": {
+        "label": "Zhipu GLM",
+        "config_key": "llm.glm_api_key",
+        "env": "ZHIPUAI_API_KEY",
+        "env_aliases": ("GLM_API_KEY",),
+        "primary": False,
+    },
+    "minimax": {
+        "label": "MiniMax",
+        "config_key": "llm.minimax_api_key",
+        "env": "MINIMAX_API_KEY",
+        "primary": False,
+    },
+    "xai": {
+        "label": "xAI (Grok)",
+        "config_key": "llm.xai_api_key",
+        "env": "XAI_API_KEY",
+        "primary": False,
+    },
+    "mistral": {
+        "label": "Mistral",
+        "config_key": "llm.mistral_api_key",
+        "env": "MISTRAL_API_KEY",
+        "primary": False,
+    },
+    "groq": {
+        "label": "Groq",
+        "config_key": "llm.groq_api_key",
+        "env": "GROQ_API_KEY",
+        "primary": False,
+    },
+    "cohere": {
+        "label": "Cohere",
+        "config_key": "llm.cohere_api_key",
+        "env": "COHERE_API_KEY",
+        "primary": False,
+    },
+    "openrouter": {
+        "label": "OpenRouter",
+        "config_key": "llm.openrouter_api_key",
+        "env": "OPENROUTER_API_KEY",
+        "primary": False,
+    },
+    "together": {
+        "label": "Together AI",
+        "config_key": "llm.together_api_key",
+        "env": "TOGETHER_API_KEY",
+        "primary": False,
+    },
+    "ollama": {
+        "label": "Ollama (local)",
+        "config_key": "llm.ollama_api_key",
+        "env": "OLLAMA_API_KEY",
+        "primary": False,
+    },
 }
 
 DEFAULTS = {
@@ -65,18 +150,26 @@ DEFAULTS = {
     "llm.groq_api_key": None,
     "llm.cohere_api_key": None,
     "llm.together_api_key": None,
+    "llm.openrouter_api_key": None,
     "llm.ollama_api_key": None,
     "llm.deepseek_api_key": None,
     "llm.kimi_api_key": None,
     "llm.minimax_api_key": None,
     "llm.qwen_api_key": None,
+    "llm.glm_api_key": None,
+    "llm.xai_api_key": None,
     # Provider base URLs (overridable)
     "llm.deepseek_base_url": "https://api.deepseek.com/v1",
     "llm.kimi_base_url": "https://api.moonshot.cn/v1",
     "llm.minimax_base_url": "https://api.minimax.chat/v1",
     "llm.qwen_base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "llm.glm_base_url": "https://open.bigmodel.cn/api/paas/v4",
+    "llm.xai_base_url": "https://api.x.ai/v1",
     "llm.mistral_base_url": "https://api.mistral.ai/v1",
     "llm.groq_base_url": "https://api.groq.com/openai/v1",
+    "llm.together_base_url": "https://api.together.xyz/v1",
+    "llm.openrouter_base_url": "https://openrouter.ai/api/v1",
+    "llm.ollama_base_url": "http://localhost:11434/v1",
 
     # Model parameters
     "llm.temperature": 0.1,
@@ -96,6 +189,9 @@ DEFAULTS = {
 
     "ui.spinner": "dots",
     "ui.language": "en",  # "en" (English), "zh" (中文), or "bi" (bilingual)
+
+    "studio.host": "127.0.0.1",
+    "studio.port": 8765,
 
     "sandbox.timeout": 30,
     "sandbox.output_dir": str(Path.cwd() / "outputs"),
@@ -134,6 +230,12 @@ AGENT_PROFILE_PRESETS = {
         "agent.enforce_grounded_synthesis": False,
         "agent.allow_creative_hypotheses": True,
         "agent.confidence_scoring_enabled": False,
+    },
+    "studio": {
+        "agent.enforce_grounded_synthesis": True,
+        "agent.allow_creative_hypotheses": True,
+        "agent.confidence_scoring_enabled": True,
+        "output.auto_publish_html_interactive": True,
     },
 }
 
@@ -232,8 +334,15 @@ class Config:
         if not spec:
             return None
         cfg_key = spec["config_key"]
+        if self._data.get(cfg_key):
+            return self._data[cfg_key]
         env = spec.get("env")
-        return self._data.get(cfg_key) or (os.environ.get(env) if env else None)
+        if env and os.environ.get(env):
+            return os.environ.get(env)
+        for alias in spec.get("env_aliases", ()):
+            if os.environ.get(alias):
+                return os.environ.get(alias)
+        return None
 
     def validate(self) -> list[str]:
         """Validate configuration and return a list of issues."""
@@ -250,7 +359,7 @@ class Config:
             if default is None:
                 continue
             expected_type = type(default)
-            if expected_type == bool and not isinstance(value, bool):
+            if expected_type is bool and not isinstance(value, bool):
                 issues.append(f"'{key}' should be bool, got {type(value).__name__}")
             elif expected_type in (int, float) and not isinstance(value, (int, float)):
                 issues.append(f"'{key}' should be numeric, got {type(value).__name__}")
