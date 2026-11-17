@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 """
 Synthesizer: takes tool results → produces structured research answer.
 """
 
 import json
 import logging
+from typing import Any
 from tcm.agent.session import Session
 
 logger = logging.getLogger("tcm.agent.synthesizer")
@@ -52,7 +55,41 @@ def _build_synthesis_system(lang: str) -> str:
     return BASE_SYNTHESIS_SYSTEM + "\n" + _lang_instructions(lang)
 
 
-def synthesize(session: Session, query: str, plan: dict, results: list[dict]) -> str:
+def _open_llm_stream(
+    llm: Any,
+    system: str,
+    messages: list[dict[str, Any]],
+    temperature: float,
+    max_tokens: int,
+    attachments: list[Any] | None = None,
+):
+    """Invoke llm.stream with attachments if supported, falling back on TypeError."""
+    if attachments:
+        try:
+            return llm.stream(
+                system=system,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                attachments=attachments,
+            )
+        except TypeError:
+            pass
+    return llm.stream(
+        system=system,
+        messages=messages,
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )
+
+
+def synthesize(
+    session: Session,
+    query: str,
+    plan: dict,
+    results: list[dict],
+    attachments: list | None = None,
+) -> str:
     """Synthesize tool results into a final answer.
 
     Args:
@@ -60,6 +97,7 @@ def synthesize(session: Session, query: str, plan: dict, results: list[dict]) ->
         query: Original user query.
         plan: The execution plan.
         results: List of step results from executor.
+        attachments: Optional multimodal attachments to forward to the LLM.
 
     Returns:
         Synthesized answer as markdown string.
@@ -68,36 +106,25 @@ def synthesize(session: Session, query: str, plan: dict, results: list[dict]) ->
     if len(results) == 1 and results[0].get("tool") == "llm_direct":
         return results[0].get("result", "")
 
-    # Build context from results
-    results_summary = _format_results(results)
-
-    user_message = f"""**User Question:** {query}
-
-**Plan Reasoning:** {plan.get('reasoning', 'N/A')}
-
-**Tool Results:**
-{results_summary}
-
-Please synthesize these results into a comprehensive answer."""
-
-    llm = session.get_llm()
-    max_tokens = int(session.config.get("agent.synthesis_max_tokens", 8192))
-    lang = session.config.get("ui.language", "en")
-
-    # Use streaming for synthesis
-    chunks = []
-    for chunk in llm.stream(
-        system=_build_synthesis_system(lang),
-        messages=[{"role": "user", "content": user_message}],
-        temperature=0.2,
-        max_tokens=max_tokens,
-    ):
-        chunks.append(chunk)
-
+    chunks = list(
+        synthesize_streaming(
+            session=session,
+            query=query,
+            plan=plan,
+            results=results,
+            attachments=attachments,
+        )
+    )
     return "".join(chunks)
 
 
-def synthesize_streaming(session: Session, query: str, plan: dict, results: list[dict]):
+def synthesize_streaming(
+    session: Session,
+    query: str,
+    plan: dict,
+    results: list[dict],
+    attachments: list | None = None,
+):
     """Synthesize with streaming — yields text chunks.
 
     Usage:
@@ -122,13 +149,18 @@ Please synthesize these results into a comprehensive answer."""
     llm = session.get_llm()
     max_tokens = int(session.config.get("agent.synthesis_max_tokens", 8192))
     lang = session.config.get("ui.language", "en")
+    effective_atts = attachments if attachments is not None else getattr(session, "attachments", None)
+    active_atts = list(effective_atts) if effective_atts else None
 
-    for chunk in llm.stream(
+    stream_iter = _open_llm_stream(
+        llm=llm,
         system=_build_synthesis_system(lang),
         messages=[{"role": "user", "content": user_message}],
         temperature=0.2,
         max_tokens=max_tokens,
-    ):
+        attachments=active_atts,
+    )
+    for chunk in stream_iter:
         yield chunk
 
 

@@ -1,307 +1,173 @@
-# tcm-cli
+# TCM Studio & CLI (`tcm-cli` v0.2.0)
 
-![tcm-cli screenshot](docs/assets/tcm-cli.png)
+![TCM Studio — Multimodal Traditional Chinese Medicine & Computational Pharmacology](docs/assets/tcm-studio-hero.jpg)
 
-An autonomous agent for Traditional Chinese Medicine research and discovery.
+**Multimodal Traditional Chinese Medicine Studio & Autonomous Research Agent — from Classical Canon to Molecular Graph.**
 
-Ask questions in natural language. tcm-cli plans the analysis, selects the right tools, executes them, validates results, and returns data-backed conclusions.
+`tcm-cli` unifies classical **Four Examinations (`四诊合参`: Inspection `望`, Auscultation `闻`, Inquiry `问`, Palpation `切`)** with **50+ computational pharmacology & clinical safety tools**, an interactive **Multimodal TCM Studio web workbench** (`tcm studio`), and unified routing across **60+ SOTA foundation models** from 15 cloud and local providers.
 
-## Why tcm?
+---
 
-- **30+ TCM research tools** — Herb lookup, formula analysis, syndrome differentiation, network pharmacology, safety checks, literature search, and more.
-- **Multi-model reasoning** — Powered by leading LLMs (Anthropic, OpenAI, Google Gemini, DeepSeek, Kimi, Qwen, MiniMax, Mistral, Groq, Cohere). Automatically plans multi-step research workflows, calls tools, and synthesizes findings.
-- **Bilingual** — Supports both Chinese (中文) and English terminology throughout. See: [Language Modes](docs/LANGUAGE.md)
-- **10+ database APIs** — PubMed, TCMSP, UniProt, STRING, KEGG, ClinicalTrials.gov, Open Targets — no setup required.
-- **Research UX** — Interactive terminal with slash commands, session export, and clipboard support.
-- **Open source** — MIT licensed.
+## Highlights in v0.2.0
 
-## Requirements
+- **Multimodal TCM Studio (`tcm studio`)** — Full interactive 4-workspace web application & REST API engine for optical CIE-$L^*a^*b^*$ tongue diagnosis (`望舌象`), crude herb decoction piece authentication (`饮片鉴别`), classical prescription OCR & Eastern Han metrology conversion (`古今方笺换算`), force-directed **Formula → Herb → Compound → Target → KEGG Pathway** network pharmacology, SVG meridian acupoint atlas, and multi-step agent synthesis.
+- **50 Computational TCM Tools Across 15 Categories** — Spanning `diagnostics` (Four Examinations), `herbs`, `formulas`, `syndromes`, `compounds`, `pharmacology`, `interactions` (`十八反/十九畏` + CYP450 herb–drug checks), `safety`, `acupuncture` (28 WHO meridian points + pregnancy-safe filtering), `classics` (7 classical canons including *Huangdi Neijing*, *Shanghan Lun*, *Jin Gui Yao Lue*, *Shennong Bencao Jing*, and *Bencao Gangmu*), `meridians`, `literature`, `modern`, `data_api`, and `code`.
+- **60+ SOTA Models Across 15 Providers** — Native multimodal (`vision`, `audio`, `video`, `pdf`, `thinking`) support for **Anthropic** (`claude-fable-5-2`, `claude-opus-5-5`, `claude-sonnet-5-5`), **OpenAI** (`gpt-6-astra`, `gpt-6.1-sol`, `gpt-6.1-terra`, `gpt-rosalind-research`), **Google Gemini** (`gemini-3.6-flash`, `gemini-3.1-pro-preview`, `gemini-2.5-pro`), **DeepSeek** (`deepseek-v4-pro`, `deepseek-v4.1-flash`), **Qwen** (`qwen3.8-max`, `qwen-vl-max`), **Zhipu GLM** (`glm-5.3`, `glm-4v-plus`), **Moonshot Kimi** (`kimi-k3.1-pro`), **MiniMax** (`minimax-m3`), **xAI** (`grok-4.8`), **Mistral** (`pixtral-large-latest`), **Groq**, **Cohere**, **Together**, **OpenRouter**, and **Local Ollama** (`ollama/medgemma:27b`, `ollama/huatuogpt-vision:7b`, `ollama/qwen3:32b`).
+- **Multimodal CLI & REPL** — Attach clinical tongue photos, herb specimens, audio recordings, or PDFs directly via `tcm -i tongue.jpg "..."` or `/attach` inside the interactive terminal.
+- **Bilingual Throughout (`en` | `zh` | `bi`)** — Seamless English, Chinese (`中文`), and aligned Bilingual research synthesis.
 
-- Python 3.10+
-- An LLM API key (any one of: Anthropic, OpenAI, Google (Gemini), DeepSeek, Kimi (Moonshot), MiniMax, Qwen (DashScope), Mistral, Groq, Cohere)
+---
 
-## Installation
+## Quick Start
 
-### Quick install (script)
+### Installation
 
 ```bash
+# Quick install script (detects pipx, uv, or pip)
 curl -fsSL https://raw.githubusercontent.com/tigerneil/tcm-cli/main/install.sh | bash
-```
 
-The script detects `pipx`, `uv`, or falls back to `pip --user`, then runs `tcm setup`.
-
-### With pipx (recommended)
-
-```bash
+# Or install with pipx (recommended)
 pipx install tcm-cli
+
+# Or install with pip + optional scientific & vision stacks
+pip install "tcm-cli[vision]"      # High-res JPEG/WebP Pillow support
+pip install "tcm-cli[chemistry]"   # RDKit molecular descriptors
+pip install "tcm-cli[analysis]"    # scikit-learn, scipy, seaborn
+pip install "tcm-cli[all]"         # Full scientific + vision suite
 ```
 
-### With pip
+### Launch Multimodal TCM Studio
 
 ```bash
-# Core install
-pip install tcm-cli
+# Launch local Studio web workbench & REST API at http://127.0.0.1:8765/studio
+tcm studio --open
 
-# With chemistry support (RDKit)
-pip install "tcm-cli[chemistry]"
+# Launch with a specific SOTA multimodal model
+tcm studio --port 8765 --model claude-opus-5-5
 
-# With ML support (PyTorch + Transformers)
-pip install "tcm-cli[ml]"
-
-# With analysis stack (scikit-learn, seaborn, scipy)
-pip install "tcm-cli[analysis]"
-
-# Everything
-pip install "tcm-cli[all]"
+# Air-gapped / private hospital mode using local Ollama medical VLM
+tcm studio --model ollama/huatuogpt-vision:7b
 ```
 
-### Authentication
+> **Note:** Even before configuring an LLM API key, `tcm studio` works out of the box with deterministic Python tools, quantitative CIE-$L^*a^*b^*$ tongue/herb colorimetry, multi-layer network pharmacology graphs, and offline clinical safety validation.
+
+### Multimodal CLI Examples
 
 ```bash
-# Interactive setup wizard (Anthropic default)
- tcm setup
-
-# Manage multiple providers (recommended)
- tcm keys                 # show status for all providers
- tcm keys set -p openai   # set OpenAI key (prompts securely)
- tcm keys set -p kimi     # set Moonshot Kimi key
- tcm keys set -p deepseek # set DeepSeek key
- tcm keys set -p google   # set Google (Gemini) key
-
-# Or export directly (CI)
- export OPENAI_API_KEY="sk-..."
- export ANTHROPIC_API_KEY="..."
- export GOOGLE_API_KEY="..."
-
-# Non-interactive (CI/scripting)
- tcm setup --api-key YOUR_ANTHROPIC_KEY
-```
-
-API keys are stored at `~/.tcm/config.json`. See provider mapping and base URLs in [docs/PROVIDERS.md](docs/PROVIDERS.md).
-
-## Getting Started
-
-### Basic usage
-
-```bash
-# Start interactive session
+# Interactive terminal session
 tcm
 
-# Single query
-tcm "What herbs are used for Spleen Qi deficiency?"
+# Optical tongue diagnosis (望舌象) with SOTA Vision model
+tcm -i tongue.jpg --model claude-opus-5-5 --lang bi \
+  "Analyze tongue colorimetry, Eight Principles, and recommend a classical formula"
 
-# Use a specific model
- tcm --model gpt-4o "Analyze 四君子汤"
- tcm --model gemini-3.1-pro "Check interactions between 人参 and 藜芦"
+# Authenticate a crude herb slice (饮片鉴别)
+tcm -i huangqi_slice.jpg --model qwen-vl-max \
+  "Verify macroscopic markers, potential adulterants, and processing specs"
 
-# Set language per run (English | Chinese | Bilingual)
-tcm --lang en "Check interactions between 人参 and 藜芦"
-tcm --lang zh "分析 四君子汤 的组成与配伍"
-tcm --lang bi "Network pharmacology for 补中益气汤"
+# Classical prescription & Eastern Han metrology conversion
+tcm "Parse 桂枝三两 芍药三两 甘草二两炙 生姜三两 大枣十二枚 using Eastern Han weights and check safety"
 
-# Validate setup
-tcm doctor
+# Network pharmacology & herb-drug safety
+tcm --model gpt-rosalind-research \
+  "Build network pharmacology for 补中益气汤 and check interactions with Warfarin"
+
+# Task-aware SOTA model routing
+tcm model recommend tongue_vision
+tcm model list --modality vision
 ```
 
-### Interactive commands
+---
 
-Inside `tcm` interactive mode:
+## Architecture & Workspaces
 
-- `/help` — command reference + examples
-- `/tools` — list all tools with status
-- `/model` — switch LLM model/provider
-- `/lang` — set output language: `en` | `zh` | `bi`
-- `/usage` — token and cost tracking
-- `/copy` — copy last answer to clipboard
-- `/export` — export session transcript
-- `/clear` — clear screen
-- `/exit` — exit
+![tcm-cli terminal screenshot](docs/assets/tcm-cli.png)
 
-### Quick examples
+### Studio Workspaces (`docs/studio.html` & `tcm studio`)
 
-**Herb lookup**
+1. **Workspace I — Multimodal Four-Examinations Lab (`四诊多模态实验台`)**: Drag-and-drop tongue/herb/prescription imaging with live CIE $L^*a^*b^*$ somatotopy (`舌尖心肺`, `舌中脾胃`, `舌边肝胆`, `舌根肾`), pharmacognosy authentication, multi-era dosage conversion, and 28-pulse (`二十八脉`) synthesis.
+2. **Workspace II — Formula Composer & Network Pharmacology (`方剂配伍与网络药理`)**: Interactive force-directed `Formula → Herb (君臣佐使) → Compound → Protein Target → KEGG Pathway` graph with ADMET metrics and real-time `十八反 / 十九畏` + CYP450 herb–drug safety screening.
+3. **Workspace III — Materia Medica, Meridians & Classics (`本草・经穴・典籍`)**: Anterior/posterior SVG human meridian atlas with clickable WHO acupoints, Materia Medica monographs, and searchable clauses across 7 classical TCM canons.
+4. **Workspace IV — SOTA Agent Console (`智能体研究终端`)**: Multi-step `Plan → Tool Execution → Grounded Bilingual Synthesis` terminal with Markdown session export.
 
-```
-$ tcm "Tell me about 黄芪 (Astragalus) — properties, compounds, and clinical evidence"
-```
+---
 
-**Formula analysis**
+## 50 Domain Tools (15 Modules)
 
-```
-$ tcm "Analyze the composition of 四君子汤 using the 君臣佐使 framework"
-```
-
-**Syndrome differentiation**
-
-```
-$ tcm "Patient has fatigue, loose stools, poor appetite, pale tongue. What TCM syndrome?"
-```
-
-**Network pharmacology**
-
-```
-$ tcm "Build a network pharmacology analysis for 补中益气汤 against diabetes targets"
-```
-
-**Safety check**
-
-```
-$ tcm "Check interactions between 人参, 藜芦, and Warfarin"
-```
-
-## Language modes
-
-You can control the language of answers globally or per-run.
-
-- Per run: `--language`/`--lang` with `en` | `zh` | `bi`
-- Interactive: `/lang en|zh|bi`
-- Persist default: `tcm config set ui.language bi`
-
-Behavior by mode:
-- `en`: English-only output with occasional pinyin for key TCM terms
-- `zh`: 中文输出，不含英文（除非作为引用）
-- `bi`: Bilingual — paired headings (e.g., "## 关键信息 | Key Findings") and aligned bullet points
-
-## Documentation
-
-- Language Modes: see [docs/LANGUAGE.md](docs/LANGUAGE.md)
-- Providers, keys, and base URLs: see [docs/PROVIDERS.md](docs/PROVIDERS.md)
-- Changelog: see [CHANGELOG.md](CHANGELOG.md)
-
-## Key Features
-
-### 30+ Domain Tools
-
-| Category | Examples |
+| Module | Representative Tools & Capabilities |
 | --- | --- |
-| **Herbs** | Lookup, property classification, meridian search, compound listing |
-| **Formulas** | Classical formula search, 君臣佐使 analysis, modifications |
-| **Syndromes** | Pattern differentiation, symptom-to-syndrome mapping, treatment plans |
-| **Compounds** | Active compound search, ADMET prediction, target identification |
-| **Pharmacology** | Network pharmacology, pathway enrichment, herb-target networks |
-| **Interactions** | 十八反/十九畏 checks, herb-drug interactions, formula safety |
-| **Literature** | PubMed search, systematic review finder, CNKI integration |
-| **Meridians** | Channel lookup, Five Element associations, meridian-herb mapping |
-| **Safety** | Toxicity profiling, pregnancy safety, dosage validation |
-| **Modern** | Clinical trial search, ICD-10 mapping, evidence summaries |
-| **Data APIs** | TCMSP, UniProt, STRING, KEGG, ClinicalTrials.gov, Open Targets |
-| **Code** | Python sandbox for custom analysis (experimental) |
+| **`diagnostics`** | `tongue_analyze` (CIE $L^*a^*b^*$ + 11 archetypes), `herb_identify` (13 decoction monographs + adulterants), `prescription_parse` (Han/Ming/Modern metrology), `four_examinations` (28 pulses `二十八脉` fusion) |
+| **`acupuncture`** | `point_lookup` (28 WHO points across 14 channels), `by_meridian`, `protocol` (with `pregnancy_safe` point substitution) |
+| **`classics`** | `search`, `clause_lookup`, `herb_monograph` (*Huangdi Neijing*, *Shanghan Lun*, *Jin Gui Yao Lue*, *Shennong Bencao Jing*, *Wenbing Tiaobian*, *Pi Wei Lun*, *Bencao Gangmu*) |
+| **`herbs`** | Materia Medica lookup, `性味归经` classification, meridian & category filtering, key compounds |
+| **`formulas`** | Classical formula search, `君臣佐使` structural composition, clinical modifications |
+| **`syndromes`** | Pattern lookup, symptom-to-syndrome differentiation, treatment principles |
+| **`compounds`** | Phytochemical search, Lipinski/ADMET profiling, protein target identification |
+| **`pharmacology`** | Multi-layer herb–compound–target network construction, KEGG/GO pathway enrichment |
+| **`interactions`** | `十八反` / `十九畏` herb–herb incompatibility checks, Western drug CYP/anticoagulant interactions |
+| **`safety`** | Toxicity profiling (`附子` aconitine boiling rules), pregnancy safety, dosage validation |
+| **`meridians`** | Twelve Regular Channels & Five-Element (`五行`) correspondences |
+| **`literature`** | PubMed search, systematic review & meta-analysis discovery |
+| **`modern`** | ClinicalTrials.gov search, ICD-10 disease mapping, modern evidence grading |
+| **`data_api`** | Live connectors to TCMSP, UniProt, STRING, KEGG, ClinicalTrials.gov, Open Targets |
+| **`code`** | Sandboxed Python scientific computation (experimental) |
 
-List all tools and their status:
+Inspect all registered tools:
 
 ```bash
 tcm tool list
 ```
 
-### Supported providers and models
+---
 
-Out of the box, tcm-cli can talk to these providers (pick any one):
+## SOTA Providers & Authentication
 
-- Anthropic: `claude-sonnet-4-5-20250929` (default), `claude-haiku-4-5-20251001`, `claude-opus-4-6`
-- OpenAI: `gpt-4o`, `gpt-4o-mini`, `o3-mini`, `gpt-4.1*`
-- DeepSeek: `deepseek-v3.2`, `deepseek-r1`
-- Kimi (Moonshot): `kimi-k2.5`
-- MiniMax: `minimax-m2.5`
-- Qwen (DashScope): `qwen3-max`, `qwen-plus`
-- Google (Gemini): `gemini-2.5-flash` (default), `gemini-2.5-pro`, `gemini-2.5-flash-lite`, `gemini-2.0-flash`, `gemini-2.0-flash-lite`, `gemini-3.1-pro-preview`, `gemini-3-pro-preview`
-- Mistral: `mistral-large-latest`
-- Groq: `llama-3.1-70b-versatile`
-- Cohere: `command-r-plus`
-
-Tip: Use the interactive picker `/model` in the REPL, or CLI commands below.
+Configure one or more providers via `tcm keys` or environment variables:
 
 ```bash
-tcm model list                    # Show all models grouped by provider with context/pricing
-tcm model set gpt-4o              # Switch to a model (provider auto-detected)
-tcm model set kimi-k2.5           # Switch to Moonshot Kimi
-tcm model set gemini-2.5-flash    # Switch to Gemini 2.5 Flash
-tcm model set gemini-2.5-pro      # Switch to Gemini 2.5 Pro (most capable)
-tcm model set gemini-3.1-pro-preview  # Switch to Gemini 3.1 Pro Preview (frontier)
-tcm model google                  # List ALL available Gemini models live from the API
-tcm model show                    # Show current model
+tcm setup                          # Interactive wizard
+tcm keys                           # View key status across all 15 providers
+tcm keys set -p anthropic          # Claude Fable 5.2, Opus 5.5, Sonnet 5.5, Haiku 5.5
+tcm keys set -p openai             # GPT-6 Astra, 6.1 Sol, 6.1 Terra, GPT-Rosalind
+tcm keys set -p google             # Gemini 3.6 Flash, 3.1 Pro, 2.5 Pro
+tcm keys set -p deepseek           # DeepSeek V4 Pro, V4.1 Flash (Vision), R1
+tcm keys set -p qwen               # Qwen 3.8 Max, Qwen-VL Max (Ancient OCR & Tongue)
+tcm keys set -p glm                # Zhipu GLM-5.3, GLM-4V Plus
+tcm keys set -p kimi               # Moonshot Kimi K3.1 Pro, K3
+tcm keys set -p xai                # xAI Grok 4.8, Grok 4 Vision
 ```
 
-See provider keys and base URLs: [docs/PROVIDERS.md](docs/PROVIDERS.md).
-
-### Local Datasets
-
-Without local data, tcm works via database APIs and built-in knowledge. To boost accuracy and offline support, install local datasets:
+Switch models anytime via CLI or REPL (`/model`):
 
 ```bash
-tcm data pull herbs      # Install bundled herb monograph data (instant)
-tcm data pull formulas   # Install bundled classical formula data (instant)
-tcm data pull tcmsp      # TCMSP — herbs, compounds, targets (~50 MB)
-tcm data pull tcmid      # TCMID — herb-compound-disease (~30 MB)
-tcm data pull batman     # BATMAN-TCM bioinformatics data (~100 MB)
-tcm data pull symmap     # SymMap symptom-mapping database (~20 MB)
-tcm data status          # Show all dataset statuses
+tcm model set claude-opus-5-5
+tcm model set gpt-6.1-terra
+tcm model set gemini-3.6-flash
+tcm model set deepseek-v4.1-flash
+tcm model set qwen-vl-max
+tcm model set ollama/medgemma:27b
 ```
 
-**Install modes:**
-- `herbs` and `formulas` install instantly from bundled package data.
-- Datasets with a direct download URL are fetched automatically with a progress bar and extracted.
-- Datasets that require registration (tcmsp, tcmid, batman, symmap) print step-by-step instructions. After downloading manually, register the file:
+---
 
-```bash
-tcm data import tcmsp ~/Downloads/tcmsp.zip
-tcm data import tcmsp ~/Downloads/tcmsp-extracted/   # or a directory
-```
+## Documentation
 
-Use `--force` to re-download or reinstall any dataset:
+- **[Multimodal TCM Studio Guide](docs/STUDIO.md)** — Workspaces, CIE-$L^*a^*b^*$ tongue colorimetry, historical metrology, and REST API endpoints
+- **[SOTA Models & Multimodal Routing](docs/MODELS.md)** — Full 60+ model catalog, modalities, and task recommendations
+- **[Providers & API Keys](docs/PROVIDERS.md)** — Environment variables and base URLs for all 15 providers
+- **[Language Modes](docs/LANGUAGE.md)** — English (`en`), Chinese (`zh`), and Bilingual (`bi`) output modes
+- **[Official Website (`docs/index.html`)](docs/index.html)** & **[Interactive Studio App (`docs/studio.html`)](docs/studio.html)**
+- **[Changelog](CHANGELOG.md)**
 
-```bash
-tcm data pull herbs --force
-```
+---
 
-## Configuration
-
-```bash
-tcm config show             # Show all settings
-tcm config set key value    # Set a value
-tcm config get key          # Get a single value
-tcm config validate         # Check for issues
-```
-
-Config is stored at `~/.tcm/config.json`.
-
-### Common config keys
-
-```bash
-tcm config set llm.provider openai           # switch to OpenAI
-tcm config set llm.model gpt-4o             # set model (provider auto-detected)
-tcm config set llm.provider google          # switch to Google (Gemini)
-tcm config set llm.model gemini-2.5-flash   # set Gemini 2.5 Flash as default
-tcm config set ui.language bi               # en (default) | zh | bi
-```
-
-### Agent profiles
-
-```bash
-tcm config set agent.profile research    # Default — balanced, allows hypotheses
-tcm config set agent.profile clinical    # Strict evidence only, no hypotheses
-tcm config set agent.profile education   # Relaxed, creative responses
-```
-
-## Troubleshooting
-
-| Symptom | Fix |
-| --- | --- |
-| `tcm` fails at startup | `tcm doctor` |
-| Authentication error | `tcm setup` or `tcm keys` |
-| Missing API key | `export OPENAI_API_KEY=...` or `tcm config set llm.openai_api_key ...` |
-| Google model 404 | Run `tcm model google` to see valid model IDs, then `tcm model set <id>` |
-| Google SSL/connect error | Transient network issue, retry or switch to another model |
-| Missing dependency | `pip install "tcm-cli[all]"` |
-| Tool module failed | `tcm tool list` — check for load errors |
-
-## Contributing
+## Contributing & Testing
 
 ```bash
 git clone https://github.com/tigerneil/tcm-cli.git
 cd tcm-cli
 pip install -e ".[dev]"
-tcm setup
-pytest tests/
+pytest
 ```
 
 ## License

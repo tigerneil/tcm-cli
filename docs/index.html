@@ -1,212 +1,1033 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TCM CLI — Autonomous agent for Traditional Chinese Medicine</title>
-  <meta name="description" content="TCM CLI: an autonomous agent for Traditional Chinese Medicine research and discovery. Ask in natural language. Plans, executes tools, validates, and returns data-backed conclusions." />
-  <meta property="og:title" content="TCM CLI — Traditional Chinese Medicine research agent" />
-  <meta property="og:description" content="Ask questions in natural language. tcm-cli plans the analysis, selects tools, executes them, validates results, and returns data-backed conclusions." />
+  <title>TCM Studio &amp; CLI v0.2.0 — Multimodal Traditional Chinese Medicine &amp; Pharmacology Engine</title>
+  <meta name="description" content="TCM Studio &amp; CLI v0.2.0 unifies Four-Examinations CIE L*a*b* vision and pulse diagnostics, 45+ computational pharmacology and clinical safety tools, and 35+ SOTA foundation models." />
+  <meta property="og:title" content="TCM Studio &amp; CLI v0.2.0 — Multimodal Traditional Chinese Medicine" />
+  <meta property="og:description" content="From Classical Canon to Molecular Graph: Four-Examinations vision &amp; acoustic diagnostics, 45+ pharmacology tools, and 35+ SOTA models." />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="/docs/assets/og.svg" />
-  <link rel="icon" href="/docs/assets/favicon.svg" />
-  <link rel="stylesheet" href="/docs/styles.css" />
+  <meta property="og:image" content="./assets/og.svg" />
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
+
+  <!-- Editorial & Scientific Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Noto+Sans+SC:wght@400;500;600&amp;family=Noto+Serif+SC:wght@500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <header class="site-header">
-    <div class="container row between center">
-      <a class="brand" href="#top" aria-label="TCM CLI home">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect x="2" y="2" width="20" height="20" rx="4" fill="#c8a85c"/>
-          <path d="M7 8h10M7 12h7M7 16h10" stroke="#0b0b0b" stroke-width="2" stroke-linecap="round"/>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <!-- ====================================================================
+       TOP NAVIGATION BAR
+       ==================================================================== -->
+  <header class="site-header" id="site-header">
+    <div class="container header-inner">
+      <a class="brand-mark" id="nav-brand" href="#main-content" aria-label="TCM Studio Home">
+        <svg class="seal-svg" viewBox="0 0 64 64" role="img" aria-hidden="true">
+          <rect x="3" y="3" width="58" height="58" rx="5" fill="var(--accent-cinnabar)" />
+          <rect x="7.5" y="7.5" width="49" height="49" rx="2.5" fill="none" stroke="#f9f6f0" stroke-width="2" stroke-opacity="0.92" />
+          <g stroke="#f9f6f0" stroke-width="3.2" stroke-linecap="square" fill="none">
+            <path d="M16 24H48" />
+            <path d="M32 13V51" />
+            <path d="M32 26L18 43" />
+            <path d="M32 26L46 43" />
+            <path d="M23 41H41" />
+          </g>
         </svg>
-        <span>TCM&nbsp;CLI</span>
+        <div class="brand-text-group">
+          <span class="brand-title" data-i18n="brandTitle">TCM Studio</span>
+          <span class="brand-version">v0.2.0</span>
+        </div>
       </a>
-      <nav class="nav">
-        <a href="#install">Install</a>
-        <a href="#examples">Examples</a>
-        <a href="#features">Features</a>
-        <a href="#faq">FAQ</a>
-        <a class="button ghost" href="https://github.com/tigerneil/tcm-cli" target="_blank" rel="noopener">GitHub</a>
+
+      <nav class="primary-nav" id="primary-nav" aria-label="Primary sections">
+        <a class="nav-link" id="nav-link-multimodal" href="#multimodal" data-i18n="navMultimodal">Multimodal</a>
+        <a class="nav-link" id="nav-link-workbench" href="#workbench-preview" data-i18n="navWorkbench">Workbench</a>
+        <a class="nav-link" id="nav-link-models" href="#models" data-i18n="navModels">SOTA Models</a>
+        <a class="nav-link" id="nav-link-architecture" href="#architecture" data-i18n="navArch">Architecture</a>
+        <a class="nav-link" id="nav-link-install" href="#install" data-i18n="navInstall">CLI &amp; Install</a>
       </nav>
+
+      <div class="header-controls">
+        <button type="button" class="ctrl-btn" id="lang-toggle-btn" aria-label="Switch language between English and Chinese">
+          <span id="lang-toggle-label">中文</span>
+        </button>
+        <button type="button" class="ctrl-btn" id="theme-toggle-btn" aria-label="Toggle Daylight and Sumi Night theme">
+          <span id="theme-toggle-label" data-i18n="themeToggleNight">Sumi Night</span>
+        </button>
+        <a class="ctrl-btn hide-sm" id="github-nav-link" href="https://github.com/tigerneil/tcm-cli" target="_blank" rel="noopener">
+          GitHub
+        </a>
+        <a class="btn-cinnabar" id="launch-studio-nav-cta" href="./studio.html" data-i18n="launchStudioCta">
+          Launch TCM Studio &rarr;
+        </a>
+        <button type="button" class="ctrl-btn mobile-menu-btn" id="mobile-menu-btn" aria-expanded="false" aria-controls="primary-nav" aria-label="Toggle navigation menu">
+          Menu
+        </button>
+      </div>
     </div>
   </header>
 
-  <main id="top">
-    <section class="hero">
+  <main id="main-content">
+    <!-- ==================================================================
+         EDITORIAL SPLIT HERO
+         ================================================================== -->
+    <section class="hero-folio" id="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy-col">
+          <span class="folio-rubric" data-i18n="heroRubric">
+            Zhenglei Bencao Philology &times; Computational Systems Pharmacology
+          </span>
+
+          <h1 class="hero-headline" id="hero-headline" data-i18n="heroHeadline">
+            Multimodal Traditional Chinese Medicine, from Classical Canon to Molecular Graph.
+          </h1>
+
+          <p class="hero-lead" id="hero-lead" data-i18n="heroLead">
+            <strong>TCM Studio &amp; CLI</strong> unifies Four-Examinations CIE <em>L*a*b*</em> vision &amp; pulse diagnostics (望闻问切), 45+ computational pharmacology &amp; clinical safety tools, and unified routing across 35+ SOTA foundation models in a single verifiable research instrument.
+          </p>
+
+          <!-- Interactive Quickstart Command Ledger -->
+          <div class="hero-cmd-ledger" id="hero-cmd-bar" role="region" aria-label="Quickstart commands">
+            <div class="cmd-tabs-bar">
+              <div class="cmd-tabs-group" role="tablist" aria-label="Command mode">
+                <button type="button" role="tab" aria-selected="true" class="cmd-tab is-active" id="cmd-tab-studio" data-cmd-key="studio" data-i18n="cmdTabStudio">
+                  Studio Web App
+                </button>
+                <button type="button" role="tab" aria-selected="false" class="cmd-tab" id="cmd-tab-cli" data-cmd-key="cli" data-i18n="cmdTabCli">
+                  Multimodal CLI
+                </button>
+                <button type="button" role="tab" aria-selected="false" class="cmd-tab" id="cmd-tab-install" data-cmd-key="install" data-i18n="cmdTabInstall">
+                  Install
+                </button>
+              </div>
+              <span class="cmd-shell-label">bash · python 3.10+</span>
+            </div>
+            <div class="cmd-body-row">
+              <div class="cmd-code-line">
+                <span class="cmd-prompt-sigil">$</span><code id="hero-cmd-code">tcm studio --open</code>
+              </div>
+              <button type="button" class="cmd-copy-btn" id="hero-cmd-copy" data-copy-target="hero-cmd-code" data-i18n="copyBtn">
+                Copy
+              </button>
+            </div>
+            <div class="cmd-footnote" id="hero-cmd-footnote" data-i18n="cmdFootnoteStudio">
+              Starts local Python TCM Studio API engine at 127.0.0.1:8765 — or run 100% in-browser right now.
+            </div>
+          </div>
+
+          <div class="hero-cta-row">
+            <a class="btn-cinnabar btn-lg" id="hero-cta-studio" href="./studio.html" data-i18n="heroPrimaryCta">
+              Launch Interactive Studio &rarr;
+            </a>
+            <a class="btn-architectural" id="hero-cta-explore" href="#multimodal" data-i18n="heroSecondaryCta">
+              Inspect Four-Examinations Engine &darr;
+            </a>
+          </div>
+
+          <div class="hero-telemetry-strip" aria-label="Platform capabilities summary">
+            <div class="telemetry-cell">
+              <span class="telemetry-val">45+</span>
+              <span class="telemetry-lbl" data-i18n="statTools">Domain &amp; Bio Tools</span>
+            </div>
+            <div class="telemetry-cell">
+              <span class="telemetry-val">35+</span>
+              <span class="telemetry-lbl" data-i18n="statModels">SOTA Models (Nov 2026)</span>
+            </div>
+            <div class="telemetry-cell">
+              <span class="telemetry-val">CIE L*a*b*</span>
+              <span class="telemetry-lbl" data-i18n="statVision">Quantitative Vision</span>
+            </div>
+            <div class="telemetry-cell">
+              <span class="telemetry-val">十八反 · CYP</span>
+              <span class="telemetry-lbl" data-i18n="statSafety">Clinical Safety Gate</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Museum Plate Photograph -->
+        <figure class="museum-plate">
+          <div class="plate-frame">
+            <img
+              src="./assets/tcm-studio-hero.jpg"
+              alt="Overhead museum flat-lay of Panax ginseng root, Radix Astragali slices, Bencao woodblock manuscript, brass apothecary scale, microscope glass slides, and Ginsenoside Rb1 and Astragaloside IV chemical structures"
+              width="1280"
+              height="720"
+              fetchpriority="high"
+            />
+          </div>
+          <figcaption class="plate-caption">
+            <span data-i18n="heroPlateCaption">
+               Materia Medica Pharmacognosy &amp; Molecular Saponin Architecture: Panax ginseng (人參), Radix Astragali (黃耆), Bencao Folio &amp; Ginsenoside Rb1.
+            </span>
+            <span class="plate-index-tag">Fig. I · Plate 01</span>
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         SECTION 1: FOUR-EXAMINATIONS MULTIMODAL ENGINE (#multimodal)
+         ================================================================== -->
+    <section class="section-folio" id="multimodal">
       <div class="container">
-        <h1>Traditional Chinese Medicine research — from question to answer</h1>
-        <p class="lead">Ask in natural language. <strong>tcm-cli</strong> plans the analysis, selects the right tools, executes them, validates results, and returns <em>data-backed</em> conclusions.</p>
-        <div class="cta row wrap gap">
-          <a class="button primary" href="#install">Install tcm-cli</a>
-          <a class="button" href="#examples">See examples</a>
+        <div class="section-header-row">
+          <div>
+            <span class="folio-rubric" data-i18n="sec1Rubric">Folio I · Four-Examinations Multimodal Engine</span>
+            <h2 class="section-title" data-i18n="sec1Title">Four-Examinations Diagnostics, Grounded in Optical &amp; Acoustic Telemetry</h2>
+            <p class="section-subtitle" data-i18n="sec1Sub">
+              Instead of opaque text prompts, TCM Studio extracts objective CIE <em>L*a*b*</em> chromatic coordinates, pharmacognosy tissue landmarks, Eastern Han posology ratios, and radial sphygmogram harmonics before invoking syndrome synthesis.
+            </p>
+          </div>
+          <div class="vertical-seal-stamp" aria-hidden="true">四診合參</div>
         </div>
-        <div class="terminal-card">
-          <div class="terminal-bar"><span></span><span></span><span></span></div>
-<pre><code>$ tcm "What herbs are used for Spleen Qi deficiency?"
-▌ planning... executing... synthesizing...
-• Core herbs: 党参、人参、白术、茯苓、黄芪
-• Actions: 益气健脾，运化失司 → 脾气虚
-• Evidence: 12 RCTs (2018–2025), 3 meta-analyses
-</code></pre>
+
+        <!-- 4-Tab Specimen Selector -->
+        <div class="specimen-tabs-nav" role="tablist" aria-label="Four-Examinations modalities">
+          <button type="button" role="tab" aria-selected="true" aria-controls="panel-tongue" class="specimen-tab-btn is-active" id="mm-tab-tongue" data-specimen-tab="tongue">
+            <span class="specimen-tab-num">PLATE I · INSPECTION</span>
+            <span class="specimen-tab-title" data-i18n="tab1Title">Tongue Colorimetry</span>
+            <span class="specimen-tab-zh">望舌象 · CIE L*a*b* 分区定量</span>
+          </button>
+          <button type="button" role="tab" aria-selected="false" aria-controls="panel-herb" class="specimen-tab-btn" id="mm-tab-herb" data-specimen-tab="herb">
+            <span class="specimen-tab-num">PLATE II · PHARMACOGNOSY</span>
+            <span class="specimen-tab-title" data-i18n="tab2Title">Decoction Piece ID</span>
+            <span class="specimen-tab-zh">辨饮片 · 性状显微与炮制鉴别</span>
+          </button>
+          <button type="button" role="tab" aria-selected="false" aria-controls="panel-canon" class="specimen-tab-btn" id="mm-tab-canon" data-specimen-tab="canon">
+            <span class="specimen-tab-num">PLATE III · PHILOLOGY</span>
+            <span class="specimen-tab-title" data-i18n="tab3Title">Classical Canon OCR</span>
+            <span class="specimen-tab-zh">析古籍 · 竖排刻本与汉代衡制</span>
+          </button>
+          <button type="button" role="tab" aria-selected="false" aria-controls="panel-pulse" class="specimen-tab-btn" id="mm-tab-pulse" data-specimen-tab="pulse">
+            <span class="specimen-tab-num">PLATE IV · PALPATION &amp; AUDIO</span>
+            <span class="specimen-tab-title" data-i18n="tab4Title">28-Pulse &amp; Acoustics</span>
+            <span class="specimen-tab-zh">闻声切脉 · 脉波图与五音合参</span>
+          </button>
         </div>
-        <div class="screenshot">
-          <img src="/docs/assets/tcm-cli.png" alt="tcm-cli screenshot" loading="lazy" style="max-width:100%;height:auto;" />
+
+        <!-- TAB PANEL 1: TONGUE COLORIMETRY & VISION -->
+        <div class="specimen-panel is-active" id="panel-tongue" role="tabpanel" aria-labelledby="mm-tab-tongue">
+          <div class="visual-specimen-box">
+            <div class="specimen-box-header">
+              <span class="specimen-box-label">Zang-Fu Lingual Somatotopy · D65 Calibrated</span>
+              <span class="status-tag-celadon" id="tongue-zone-badge">Hover Organ Zone</span>
+            </div>
+
+            <div class="tongue-svg-stage">
+              <svg id="landing-tongue-svg" viewBox="0 0 360 320" role="img" aria-label="Interactive Tongue Somatotopy Map">
+                <!-- Measurement crosshairs -->
+                <line x1="180" y1="14" x2="180" y2="306" stroke="var(--border-strong)" stroke-dasharray="3 4" />
+                <line x1="30" y1="158" x2="330" y2="158" stroke="var(--border-strong)" stroke-dasharray="3 4" />
+
+                <!-- Outer Tongue Silhouette -->
+                <path id="svg-tongue-body" d="M102,42 C102,22 258,22 258,42 C268,118 264,205 232,258 C208,295 152,295 128,258 C96,205 92,118 102,42 Z" fill="#dfa8a6" stroke="#8a4b49" stroke-width="2.2" />
+
+                <!-- Lingual Coating Layer -->
+                <path id="svg-tongue-coat" d="M124,54 C140,46 220,46 236,54 C242,118 238,188 214,232 C196,258 164,258 146,232 C122,188 118,118 124,54 Z" fill="#f5f1ea" fill-opacity="0.68" />
+
+                <!-- Fissures Group (Toggled by preset) -->
+                <g id="svg-tongue-fissures" stroke="#7a2428" stroke-width="1.7" stroke-linecap="round" opacity="0">
+                  <path d="M180,78 L180,226" />
+                  <path d="M180,115 L154,102" />
+                  <path d="M180,148 L208,136" />
+                  <path d="M180,182 L152,172" />
+                  <path d="M180,204 L204,194" />
+                </g>
+
+                <!-- Scalloped Teeth Marks Group (Toggled by preset) -->
+                <g id="svg-tongue-scallops" fill="none" stroke="#9e6d6c" stroke-width="2.4" opacity="1">
+                  <path d="M100,118 Q109,128 101,138 Q110,148 103,158 Q112,168 106,178 Q116,188 111,198" />
+                  <path d="M260,118 Q251,128 259,138 Q250,148 257,158 Q248,168 254,178 Q244,188 249,198" />
+                </g>
+
+                <!-- Petechiae / Stasis Macules Group (Toggled by preset) -->
+                <g id="svg-tongue-stasis" fill="#4f2d3a" opacity="0">
+                  <circle cx="132" cy="188" r="3.2" />
+                  <circle cx="140" cy="212" r="2.6" />
+                  <circle cx="226" cy="182" r="3.4" />
+                  <circle cx="218" cy="216" r="2.8" />
+                  <circle cx="166" cy="248" r="2.5" />
+                  <circle cx="195" cy="252" r="3.0" />
+                </g>
+
+                <!-- Interactive Zang-Fu Somatotopy Zones -->
+                <!-- Root: Kidney / Bladder / Lower Jiao -->
+                <path class="somatotopy-zone" data-zone="Kidney &amp; Lower Jiao Root (舌根属肾·下焦)" d="M126,46 C150,36 210,36 234,46 L226,96 L134,96 Z" fill="transparent" stroke="#251e18" stroke-opacity="0.38" stroke-width="1.2" stroke-dasharray="4 3" />
+                <!-- Center: Spleen & Stomach -->
+                <rect class="somatotopy-zone" data-zone="Spleen &amp; Stomach Center (舌中属脾胃·中焦)" x="138" y="104" width="84" height="96" rx="12" fill="transparent" stroke="#9f712d" stroke-opacity="0.65" stroke-width="1.4" stroke-dasharray="4 3" />
+                <!-- Left/Right Margins: Liver & Gallbladder -->
+                <path class="somatotopy-zone" data-zone="Liver &amp; Gallbladder Margins (舌边属肝胆)" d="M103,104 L132,104 L132,208 L116,226 C100,190 98,144 103,104 Z" fill="transparent" stroke="#356352" stroke-opacity="0.65" stroke-width="1.4" stroke-dasharray="4 3" />
+                <path class="somatotopy-zone" data-zone="Liver &amp; Gallbladder Margins (舌边属肝胆)" d="M257,104 L228,104 L228,208 L244,226 C260,190 262,144 257,104 Z" fill="transparent" stroke="#356352" stroke-opacity="0.65" stroke-width="1.4" stroke-dasharray="4 3" />
+                <!-- Tip: Heart & Lung -->
+                <path class="somatotopy-zone" data-zone="Heart &amp; Lung Apex (舌尖属心肺·上焦)" d="M132,216 L228,216 C214,274 146,274 132,216 Z" fill="transparent" stroke="#bc3923" stroke-opacity="0.65" stroke-width="1.4" stroke-dasharray="4 3" />
+
+                <!-- Callout Labels -->
+                <g font-family="var(--font-mono)" font-size="10" fill="var(--ink-secondary)">
+                  <text x="180" y="74" text-anchor="middle">ROOT · KIDNEY 肾</text>
+                  <text x="180" y="154" text-anchor="middle">CENTER · SPLEEN 脾胃</text>
+                  <text x="52" y="166" text-anchor="middle">LIVER 肝胆</text>
+                  <text x="308" y="166" text-anchor="middle">LIVER 肝胆</text>
+                  <text x="180" y="256" text-anchor="middle" fill="var(--accent-cinnabar)" font-weight="600">TIP · HEART/LUNG 心肺</text>
+                </g>
+              </svg>
+            </div>
+
+            <div class="preset-pill-bar" role="group" aria-label="Tongue clinical archetypes">
+              <button type="button" class="preset-chip is-active" id="tongue-preset-0" data-tongue-idx="0">
+                淡白胖大齿痕 · Pale Scalloped
+              </button>
+              <button type="button" class="preset-chip" id="tongue-preset-1" data-tongue-idx="1">
+                红舌黄腻苔 · Red Yellow-Greasy
+              </button>
+              <button type="button" class="preset-chip" id="tongue-preset-2" data-tongue-idx="2">
+                红绛裂纹少苔 · Crimson Fissured
+              </button>
+              <button type="button" class="preset-chip" id="tongue-preset-3" data-tongue-idx="3">
+                青紫瘀点舌 · Violaceous Stasis
+              </button>
+            </div>
+          </div>
+
+          <div class="clinical-readout-pane">
+            <div>
+              <span class="status-tag-ochre" id="tongue-syndrome-code">PATTERN · SPLEEN QI DEFICIENCY WITH DAMPNESS</span>
+              <h3 class="readout-title" id="tongue-syndrome-title">脾虚湿盛证 — Pale Swollen Scalloped Tongue</h3>
+              <p class="readout-desc" id="tongue-syndrome-desc">
+                Elevated luminance (L* &gt; 72) with attenuated erythroid chrome (a* = +11.2) indicates diminished Qi-Blood perfusion to the lingual papillae; marginal dental indentations reflect interstitial fluid retention from impaired Spleen transformation.
+              </p>
+            </div>
+
+            <div class="lab-metrics-grid" aria-label="CIE L*a*b* colorimetry">
+              <div class="lab-metric-item">
+                <span class="lab-metric-key">CIE L* (Luminance)</span>
+                <span class="lab-metric-num" id="tongue-val-l">74.8</span>
+                <span class="lab-metric-delta" id="tongue-delta-l">+9.4 vs norm (Pale)</span>
+              </div>
+              <div class="lab-metric-item">
+                <span class="lab-metric-key">CIE a* (Red–Green)</span>
+                <span class="lab-metric-num" id="tongue-val-a">+11.2</span>
+                <span class="lab-metric-delta" id="tongue-delta-a">-11.6 vs norm (Hypoemic)</span>
+              </div>
+              <div class="lab-metric-item">
+                <span class="lab-metric-key">CIE b* (Coat Yellow)</span>
+                <span class="lab-metric-num" id="tongue-val-b">+12.6</span>
+                <span class="lab-metric-delta" id="tongue-delta-b">Thin white moist fur</span>
+              </div>
+            </div>
+
+            <div>
+              <span class="field-label">Eight-Principle Vector (八纲辨证定量向量)</span>
+              <div class="bagang-bars">
+                <div class="bagang-row">
+                  <div class="bagang-labels"><span>Cold 寒</span><span id="bg-lbl-heat">Cold-Biased (24%)</span><span>Heat 热</span></div>
+                  <div class="bagang-track"><div class="bagang-fill" id="bg-bar-heat" style="width:24%"></div></div>
+                </div>
+                <div class="bagang-row">
+                  <div class="bagang-labels"><span>Deficiency 虚</span><span id="bg-lbl-excess">Deficient (18%)</span><span>Excess 实</span></div>
+                  <div class="bagang-track"><div class="bagang-fill ochre" id="bg-bar-excess" style="width:18%"></div></div>
+                </div>
+                <div class="bagang-row">
+                  <div class="bagang-labels"><span>Interior 里</span><span id="bg-lbl-int">Interior (88%)</span><span>Exterior 表</span></div>
+                  <div class="bagang-track"><div class="bagang-fill celadon" id="bg-bar-int" style="width:88%"></div></div>
+                </div>
+                <div class="bagang-row">
+                  <div class="bagang-labels"><span>Yin 阴</span><span id="bg-lbl-yang">Yin/Damp (30%)</span><span>Yang 阳</span></div>
+                  <div class="bagang-track"><div class="bagang-fill" id="bg-bar-yang" style="width:30%"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kv-ledger">
+              <div class="kv-row">
+                <span class="kv-key">Anchor Formula</span>
+                <span class="kv-val" id="tongue-formula-rec"><strong>参苓白术散 / 六君子汤</strong> (Shen Ling Bai Zhu San) — Codonopsis, Atractylodes, Poria, Coix, Amomum</span>
+              </div>
+              <div class="kv-row">
+                <span class="kv-key">CLI Invocation</span>
+                <span class="kv-val"><code id="tongue-cli-cmd">tcm -i tongue_specimen.jpg "Quantify L*a*b* &amp; differentiate syndrome"</code></span>
+              </div>
+            </div>
+
+            <div>
+              <a class="btn-cinnabar" id="tongue-open-studio-btn" href="./studio.html?workspace=lab&amp;preset=pale_scalloped">
+                Analyze Live Image in Studio Lab &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB PANEL 2: DECOCTION PIECE AUTHENTICATION -->
+        <div class="specimen-panel" id="panel-herb" role="tabpanel" aria-labelledby="mm-tab-herb">
+          <div class="visual-specimen-box">
+            <div class="specimen-box-header">
+              <span class="specimen-box-label">Radix Astragali · Astragalus membranaceus (Fisch.) Bge.</span>
+              <span class="status-tag-celadon">ChP 2025 Verified</span>
+            </div>
+            <div class="annotated-photo-wrap">
+              <img
+                src="./assets/herb-specimen-huangqi.jpg"
+                alt="Clinical pharmacognosy macro grid of Radix Astragali slices showing chrysanthemum-heart radial striations on handmade Xuan paper"
+                width="1024"
+                height="768"
+                loading="lazy"
+              />
+              <button type="button" class="callout-pin is-active" id="herb-pin-0" data-herb-pin="0" style="left:50%;top:18%;" aria-label="Chrysanthemum-heart radial xylem">1</button>
+              <button type="button" class="callout-pin" id="herb-pin-1" data-herb-pin="1" style="left:41%;top:49%;" aria-label="Cambium ring and phloem cortex">2</button>
+              <button type="button" class="callout-pin" id="herb-pin-2" data-herb-pin="2" style="left:70%;top:37%;" aria-label="HPLC chemical marker assay">3</button>
+              <button type="button" class="callout-pin" id="herb-pin-3" data-herb-pin="3" style="left:30%;top:62%;" aria-label="Raw versus honey-broiled processing">4</button>
+            </div>
+            <div class="preset-pill-bar">
+              <button type="button" class="preset-chip is-active" id="herb-chip-0" data-herb-pin="0">1 · 菊花心 Xylem</button>
+              <button type="button" class="preset-chip" id="herb-chip-1" data-herb-pin="1">2 · 金井玉栏 Cortex</button>
+              <button type="button" class="preset-chip" id="herb-chip-2" data-herb-pin="2">3 · HPLC Markers</button>
+              <button type="button" class="preset-chip" id="herb-chip-3" data-herb-pin="3">4 · 生用 vs 蜜炙</button>
+            </div>
+          </div>
+
+          <div class="clinical-readout-pane">
+            <div>
+              <span class="status-tag-ochre" id="herb-callout-badge">LANDMARK 01 · MACROSCOPIC XYLEM ANATOMY</span>
+              <h3 class="readout-title" id="herb-callout-title">菊花心 (Chrysanthemum-Heart Radial Striations)</h3>
+              <p class="readout-desc" id="herb-callout-desc">
+                Authentic Inner Mongolian <em>Astragalus membranaceus var. mongholicus</em> exhibits a bright pale-yellow wooden core with fine, radiating vascular rays and micro-fissures resembling an open chrysanthemum blossom — immediately distinguishing it from non-radiating woody substitutes.
+              </p>
+            </div>
+
+            <div class="kv-ledger">
+              <div class="kv-row">
+                <span class="kv-key">ChP Assay Standard</span>
+                <span class="kv-val"><code>Astragaloside IV &ge; 0.080%</code> (HPLC-ELSD) &middot; <code>Calycosin-7-O-&beta;-D-glucoside &ge; 0.020%</code></span>
+              </div>
+              <div class="kv-row">
+                <span class="kv-key">Adulterant Screen</span>
+                <span class="kv-val">Differentiates <strong>红芪</strong> (<em>Hedysarum polybotrys</em>, reddish-brown periderm, lacks calycosin signature), <strong>锦鸡儿</strong> (<em>Caragana</em>), and sulfur-fumigated slices.</span>
+              </div>
+              <div class="kv-row">
+                <span class="kv-key">Paozhi Routing</span>
+                <span class="kv-val"><strong>生黄芪 (Raw)</strong>: Exterior consolidation, diuresis &amp; wound granulation &middot; <strong>蜜炙黄芪 (Honey-Broiled)</strong>: Middle-Jiao Qi &amp; Yang raising.</span>
+              </div>
+              <div class="kv-row">
+                <span class="kv-key">Key Targets</span>
+                <span class="kv-val"><code>AMPK</code>, <code>AKT1</code>, <code>NOS3</code>, <code>NFE2L2 (Nrf2)</code>, <code>TNF</code> — Immunomodulation &amp; endothelial protection.</span>
+              </div>
+            </div>
+
+            <div>
+              <a class="btn-cinnabar" href="./studio.html?workspace=lab&amp;subtab=herb&amp;preset=huangqi">
+                Open Herb Specimen Inspector in Studio &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB PANEL 3: CLASSICAL CANON & PRESCRIPTION PHILOLOGY -->
+        <div class="specimen-panel" id="panel-canon" role="tabpanel" aria-labelledby="mm-tab-canon">
+          <div class="visual-specimen-box">
+            <div class="specimen-box-header">
+              <span class="specimen-box-label">Bencao Gangmu (1596) · Woodblock Folio OCR</span>
+              <span class="status-tag-ochre">Vertical Right-to-Left</span>
+            </div>
+            <div class="annotated-photo-wrap">
+              <img
+                src="./assets/classical-folio-manuscript.jpg"
+                alt="Archival macro photograph of Bencao Gangmu Panax ginseng woodblock page with vertical Chinese typography and vermilion collector seal"
+                width="1024"
+                height="768"
+                loading="lazy"
+              />
+            </div>
+          </div>
+
+          <div class="clinical-readout-pane">
+            <div>
+              <span class="status-tag-celadon">WOODBLOCK OCR + HAN POSOLOGY ENGINE</span>
+              <h3 class="readout-title">本草綱目 · 人參 — Vertical Folio Transcription &amp; Weight Calibration</h3>
+              <p class="readout-desc">
+                Extracts traditional unpunctuated characters from Ming/Song woodblock engravings and handwritten clinical prescriptions, resolves historical variant glyphs (異體字), and converts Eastern Han weights to modern Pharmacopoeia gram dosages.
+              </p>
+            </div>
+
+            <div class="kv-ledger">
+              <div class="kv-row">
+                <span class="kv-key">OCR Transcription</span>
+                <span class="kv-val">「本草綱目 · 人參：根似人形，氣味甘平、主治補五臟，安精神，止驚悸，除邪氣，明目，開心益智。」</span>
+              </div>
+              <div class="kv-row">
+                <span class="kv-key">Seal Provenance</span>
+                <span class="kv-val">Vermilion intaglio stamp detected: <code>陳氏藏書</code> (Chen Family Archival Collection) &middot; Folio 35 (頁三十五)</span>
+              </div>
+            </div>
+
+            <!-- Live Eastern Han Shanghan Lun Posology Converter -->
+            <div class="posology-converter">
+              <span class="specimen-box-label">Interactive Eastern Han Posology Converter (傷寒論東漢衡制換算)</span>
+              <div class="posology-controls">
+                <div>
+                  <label class="field-label" for="han-liang-input">Classical Dosage (兩 Liang)</label>
+                  <input type="number" class="input-architectural" id="han-liang-input" min="0.5" max="24" step="0.5" value="3" />
+                </div>
+                <div>
+                  <label class="field-label" for="han-regime-select">Metrological Standard</label>
+                  <select class="input-architectural" id="han-regime-select">
+                    <option value="13.8">Archaeological Han (1兩 = 13.8g · 新莽嘉量)</option>
+                    <option value="15.6">Imperial Song Kai-Bao (1兩 = 15.6g / 1錢 = 3.9g)</option>
+                    <option value="3.0">Modern Textbook Conservative (1兩 &approx; 3.0g)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="recommender-result" id="han-conversion-output">
+                <strong>3.0 兩</strong> in <em>Shanghan Lun</em> (e.g., 人參三兩 in 小柴胡湯) = <code>41.4 g</code> total decoction yield (<code>13.8 g</code> per single draught when divided into 三服).
+              </div>
+            </div>
+
+            <div>
+              <a class="btn-cinnabar" href="./studio.html?workspace=lab&amp;subtab=ocr&amp;preset=bencao_folio">
+                Test Manuscript &amp; Prescription OCR in Studio &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB PANEL 4: 28-PULSE & ACOUSTIC SYNTHESIS -->
+        <div class="specimen-panel" id="panel-pulse" role="tabpanel" aria-labelledby="mm-tab-pulse">
+          <div class="visual-specimen-box">
+            <div class="specimen-box-header">
+              <span class="specimen-box-label">Radial Artery Sphygmogram (寸关尺脉波图)</span>
+              <span class="status-tag-cinnabar" id="pulse-bpm-badge">76 BPM · h3/h1 = 0.78</span>
+            </div>
+
+            <div class="pulse-svg-stage">
+              <svg id="landing-pulse-svg" viewBox="0 0 520 210" role="img" aria-label="Radial pulse waveform">
+                <!-- Baseline subtle clinical reference lines -->
+                <line x1="24" y1="35" x2="496" y2="35" stroke="var(--border-hairline)" />
+                <line x1="24" y1="105" x2="496" y2="105" stroke="var(--border-hairline)" stroke-dasharray="4 4" />
+                <line x1="24" y1="175" x2="496" y2="175" stroke="var(--border-strong)" />
+                <!-- Waveform path -->
+                <path id="pulse-wave-path" d="M24,172 L52,172 L72,42 L94,62 L112,54 L132,124 L148,112 L188,172 L218,172 L238,42 L260,62 L278,54 L298,124 L314,112 L354,172 L384,172 L404,42 L426,62 L444,54 L464,124 L480,112 L496,158" fill="none" stroke="var(--accent-cinnabar)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+                <!-- Fiducial labels -->
+                <g font-family="var(--font-mono)" font-size="10" fill="var(--ink-muted)">
+                  <text x="72" y="28" text-anchor="middle">h1 主波</text>
+                  <text x="114" y="44" text-anchor="middle">h3 重搏前波</text>
+                  <text x="134" y="140" text-anchor="middle">h4 降中峡</text>
+                  <text x="154" y="102" text-anchor="middle">h5</text>
+                </g>
+              </svg>
+            </div>
+
+            <div class="preset-pill-bar" role="group" aria-label="Classical pulse waveforms">
+              <button type="button" class="preset-chip is-active" id="pulse-btn-wiry" data-pulse-key="wiry">弦脉 · Wiry</button>
+              <button type="button" class="preset-chip" id="pulse-btn-slippery" data-pulse-key="slippery">滑脉 · Slippery</button>
+              <button type="button" class="preset-chip" id="pulse-btn-choppy" data-pulse-key="choppy">涩脉 · Choppy</button>
+              <button type="button" class="preset-chip" id="pulse-btn-thready" data-pulse-key="thready">细数脉 · Thready-Rapid</button>
+              <button type="button" class="preset-chip" id="pulse-btn-deep" data-pulse-key="deep">沉迟脉 · Deep-Slow</button>
+            </div>
+          </div>
+
+          <div class="clinical-readout-pane">
+            <div>
+              <span class="status-tag-ochre" id="pulse-tag-code">PULSE MORPHOLOGY · TAUT BOWSTRING HARMONIC</span>
+              <h3 class="readout-title" id="pulse-readout-title">弦脉 (Wiry / String-Taut Pulse) — 端直以长，如按琴弦</h3>
+              <p class="readout-desc" id="pulse-readout-desc">
+                Elevated tidal wave amplitude (h3/h1 = 0.78) with broadened systolic plateau (w/t = 0.29) reflects heightened peripheral arterial smooth-muscle tone — classically correlated with Liver Qi constraint, Shaoyang pivot disharmony, pain syndromes, or phlegm-retention.
+              </p>
+            </div>
+
+            <div class="kv-ledger">
+              <div class="kv-row">
+                <span class="kv-key">Hemodynamics</span>
+                <span class="kv-val" id="pulse-hemo-val"><code>h3/h1 = 0.78</code> (High Vascular Tension) &middot; <code>w/t = 0.29</code> &middot; <code>h4/h1 = 0.56</code></span>
+              </div>
+              <div class="kv-row">
+                <span class="kv-key">Acoustic Fusion</span>
+                <span class="kv-val" id="pulse-acoustic-val">Auscultation (闻诊): Frequent sighing (善太息), taut vocal resonance (角音偏亢) &rarr; high concordance with Liver Depression.</span>
+              </div>
+              <div class="kv-row">
+                <span class="kv-key">Canonical Anchor</span>
+                <span class="kv-val" id="pulse-canon-val"><em>Shanghan Lun</em> Clause 263 / 96: <strong>小柴胡汤</strong> (Shaoyang Wiry Pulse) or <strong>柴胡疏肝散</strong> (Liver Qi Stagnation).</span>
+              </div>
+            </div>
+
+            <div>
+              <a class="btn-cinnabar" href="./studio.html?workspace=lab&amp;subtab=fusion">
+                Synthesize Four-Examinations Case in Studio &rarr;
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section id="install" class="section install">
+    <!-- ==================================================================
+         SECTION 2: INTERACTIVE FORMULA & SAFETY MINI-BENCH (#workbench-preview)
+         ================================================================== -->
+    <section class="section-folio alt-surface" id="workbench-preview">
       <div class="container">
-        <h2>Install</h2>
-        <p>Pick one of the options below. Requires Python 3.10+.</p>
-        <div class="cards grid-3">
-          <div class="card">
-            <h3>Quick install</h3>
-            <p>One-liner to get started fast.</p>
-            <div class="code">
-              <button class="copy" data-copy="curl -fsSL https://raw.githubusercontent.com/tigerneil/tcm-cli/main/install.sh | bash">Copy</button>
-<pre><code>curl -fsSL https://raw.githubusercontent.com/tigerneil/tcm-cli/main/install.sh | bash</code></pre>
+        <div class="section-header-row">
+          <div>
+            <span class="folio-rubric" data-i18n="sec2Rubric">Folio II · Formula Compatibility &amp; Clinical Safety Gate</span>
+            <h2 class="section-title" data-i18n="sec2Title">Jun-Chen-Zuo-Shi Decomposition Meets Network Pharmacology &amp; Safety</h2>
+            <p class="section-subtitle" data-i18n="sec2Sub">
+              Inspect classical prescriptions or challenge the safety engine with Eighteen Incompatibilities (十八反) and Herb–Drug CYP450 / anticoagulant interactions before opening the full force-directed graph in TCM Studio.
+            </p>
+          </div>
+          <div class="vertical-seal-stamp" aria-hidden="true">君臣佐使</div>
+        </div>
+
+        <div class="formula-selector-strip" role="group" aria-label="Select classical formula or safety challenge">
+          <button type="button" class="formula-pill-btn is-active" id="bench-btn-sijunzi" data-formula-key="sijunzi">
+            四君子汤 · Si Jun Zi Tang
+          </button>
+          <button type="button" class="formula-pill-btn" id="bench-btn-buzhong" data-formula-key="buzhong">
+            补中益气汤 · Bu Zhong Yi Qi
+          </button>
+          <button type="button" class="formula-pill-btn" id="bench-btn-xiaochaihu" data-formula-key="xiaochaihu">
+            小柴胡汤 · Xiao Chai Hu
+          </button>
+          <button type="button" class="formula-pill-btn" id="bench-btn-huanglian" data-formula-key="huanglian">
+            黄连解毒汤 · Huang Lian Jie Du
+          </button>
+          <button type="button" class="formula-pill-btn" id="bench-btn-xuefu" data-formula-key="xuefu">
+            血府逐瘀汤 · Xue Fu Zhu Yu
+          </button>
+          <button type="button" class="formula-pill-btn is-hazard" id="bench-btn-shibafan" data-formula-key="shibafan">
+            &#9888; 人参 + 藜芦 (十八反)
+          </button>
+          <button type="button" class="formula-pill-btn is-hazard" id="bench-btn-warfarin" data-formula-key="warfarin">
+            &#9888; 丹参 + Warfarin (CYP)
+          </button>
+        </div>
+
+        <div class="minibench-frame">
+          <!-- Left Column: Jun-Chen-Zuo-Shi Architecture -->
+          <div class="minibench-col">
+            <div class="bench-col-header">
+              <div>
+                <span class="specimen-box-label" id="bench-source-text">Tai Ping Hui Min He Ji Ju Fang (1107 CE)</span>
+                <h3 class="bench-formula-name" id="bench-formula-title">四君子汤 (Si Jun Zi Tang)</h3>
+              </div>
+              <span class="status-tag-ochre" id="bench-action-tag">益气健脾 · Tonify Qi</span>
+            </div>
+
+            <table class="jczs-table" aria-label="Formula role decomposition">
+              <thead>
+                <tr>
+                  <th>Role (配伍)</th>
+                  <th>Materia Medica</th>
+                  <th>Dosage</th>
+                  <th>Meridian &amp; Nature</th>
+                </tr>
+              </thead>
+              <tbody id="bench-herbs-tbody">
+                <!-- Populated dynamically by script.js with initial SSR fallback -->
+                <tr>
+                  <td><span class="role-tag role-jun">君 Sovereign</span></td>
+                  <td><strong>人参</strong> <em>Panax ginseng</em></td>
+                  <td class="mono">9 g</td>
+                  <td>Sweet, Warm · SP, LU, HT</td>
+                </tr>
+                <tr>
+                  <td><span class="role-tag role-chen">臣 Minister</span></td>
+                  <td><strong>白术</strong> <em>Atractylodes macrocephala</em></td>
+                  <td class="mono">9 g</td>
+                  <td>Bitter-Sweet, Warm · SP, ST</td>
+                </tr>
+                <tr>
+                  <td><span class="role-tag role-zuo">佐 Assistant</span></td>
+                  <td><strong>茯苓</strong> <em>Poria cocos</em></td>
+                  <td class="mono">9 g</td>
+                  <td>Sweet-Bland, Neutral · HT, SP, KI</td>
+                </tr>
+                <tr>
+                  <td><span class="role-tag role-shi">使 Courier</span></td>
+                  <td><strong>炙甘草</strong> <em>Glycyrrhiza uralensis</em></td>
+                  <td class="mono">6 g</td>
+                  <td>Sweet, Warm · All 12 Meridians</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Right Column: Compounds -> Targets + Clinical Safety Gate -->
+          <div class="minibench-col">
+            <div class="bench-col-header">
+              <span class="specimen-box-label">Active Phytochemicals &rarr; Human Protein Targets</span>
+              <span class="mono" style="font-size:0.74rem;color:var(--ink-muted);" id="bench-pathway-label">KEGG: PI3K-Akt / AMPK</span>
+            </div>
+
+            <div class="target-chip-cloud" id="bench-targets-cloud">
+              <span class="bio-target-chip">Ginsenoside Rg1 &rarr; <span>AKT1</span></span>
+              <span class="bio-target-chip">Atractylenolide III &rarr; <span>AMPK</span></span>
+              <span class="bio-target-chip">Pachymic Acid &rarr; <span>TNF</span></span>
+              <span class="bio-target-chip">Licochalcone A &rarr; <span>IL6</span></span>
+              <span class="bio-target-chip">Ginsenoside Rb1 &rarr; <span>PPARG</span></span>
+            </div>
+
+            <div class="safety-verdict-banner" id="bench-safety-banner">
+              <div class="safety-verdict-head" id="bench-safety-head">&#10003; SAFETY GATE PASSED · ZERO 十八反 / 十九畏 VIOLATIONS</div>
+              <p class="safety-verdict-body" id="bench-safety-body">
+                All 4 herbs satisfy Chinese Pharmacopoeia 2025 adult dosage bounds. Note: Prolonged high-dose 炙甘草 (&gt;15g/day) warrants serum K+ and blood pressure monitoring due to pseudoaldosteronism via 11&beta;-HSD2 inhibition.
+              </p>
+            </div>
+
+            <div style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;justify-content:space-between;">
+              <a class="btn-cinnabar" id="bench-open-studio-link" href="./studio.html?workspace=pharmacology&amp;formula=sijunzi" data-i18n="openFullStudioBtn">
+                Open Full Interactive Studio &rarr;
+              </a>
+              <code style="font-size:0.76rem;color:var(--ink-muted);" id="bench-cli-hint">$ tcm "Network pharmacology of 四君子汤"</code>
             </div>
           </div>
-          <div class="card">
-            <h3>pipx (recommended)</h3>
-            <p>Installs in an isolated environment.</p>
-            <div class="code">
-              <button class="copy" data-copy="pipx install tcm-cli">Copy</button>
-<pre><code>pipx install tcm-cli</code></pre>
-            </div>
-            <div class="code">
-              <button class="copy" data-copy="tcm setup">Copy</button>
-<pre><code>tcm setup   # configure API keys and run health check</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         SECTION 3: SOTA FOUNDATION MODEL ECOSYSTEM (#models)
+         ================================================================== -->
+    <section class="section-folio" id="models">
+      <div class="container">
+        <div class="section-header-row">
+          <div>
+            <span class="folio-rubric" data-i18n="sec3Rubric">Folio III · Unified SOTA Foundation Model Router</span>
+            <h2 class="section-title" data-i18n="sec3Title">35+ Frontier &amp; Open-Weight Models, One Deterministic Clinical Interface</h2>
+            <p class="section-subtitle" data-i18n="sec3Sub">
+              Route multimodal tongue diagnostics, ancient Bencao OCR, multi-hop network pharmacology, or air-gapped hospital workloads across Anthropic, OpenAI, Google DeepMind, Chinese Frontier labs, xAI, Mistral, and local Ollama weights.
+            </p>
+          </div>
+          <div class="vertical-seal-stamp" aria-hidden="true">神機妙算</div>
+        </div>
+
+        <!-- Task Recommender + Live Search -->
+        <div class="models-controls-grid">
+          <div>
+            <label class="field-label" for="model-task-select" data-i18n="taskRecommenderLabel">SOTA Task-Based Model Recommender</label>
+            <select class="input-architectural" id="model-task-select">
+              <option value="vision">Tongue Colorimetry &amp; Herb Pharmacognosy Vision (望舌辨药视觉)</option>
+              <option value="ocr">Ancient Woodblock OCR &amp; Classical Bencao Philology (古籍刻本考据)</option>
+              <option value="pharma">Systems &amp; Network Pharmacology Multi-Target Graph (网络药理靶点推理)</option>
+              <option value="safety">Strict Clinical Contraindication &amp; CYP Herb-Drug Safety (十八反与临床安全)</option>
+              <option value="audio">Native Multimodal Pulse/Audio &amp; High-Throughput Triage (原生音视频问诊)</option>
+              <option value="local">Air-Gapped Hospital / On-Premise Privacy Deployment (院内私有本地部署)</option>
+            </select>
+            <div class="recommender-result" id="model-task-recommendation">
+              Recommended primary: <code>claude-opus-5-5</code> &middot; Visual specialist: <code>gpt-6.1-terra</code> &middot; TCM Bilingual Vision: <code>qwen-vl-max</code>
             </div>
           </div>
-          <div class="card">
-            <h3>pip</h3>
-            <p>Or include optional scientific stacks.</p>
-            <div class="code">
-              <button class="copy" data-copy="pip install tcm-cli">Copy</button>
-<pre><code>pip install tcm-cli</code></pre>
-            </div>
-            <div class="code">
-              <button class="copy" data-copy="pip install \"tcm-cli[all]\"">Copy</button>
-<pre><code>pip install "tcm-cli[all]"</code></pre>
+
+          <div>
+            <label class="field-label" for="model-search-input" data-i18n="modelSearchLabel">Filter by Provider, Model ID, or Capability</label>
+            <input type="search" class="input-architectural" id="model-search-input" placeholder="e.g. claude-fable, gpt-rosalind, deepseek-v4, 1M, audio..." />
+            <div class="recommender-result">
+              Switch anytime via CLI: <code id="selected-model-cli-preview">tcm model set claude-opus-5-5</code>
             </div>
           </div>
         </div>
 
-        <details class="tip">
-          <summary>Authentication</summary>
-<pre><code># Interactive (recommended)
-tcm setup
+        <!-- Filter Pills -->
+        <div class="filter-pills-row" role="group" aria-label="Filter model category">
+          <button type="button" class="filter-pill is-active" id="model-filter-all" data-model-filter="all">All (35+)</button>
+          <button type="button" class="filter-pill" id="model-filter-vision" data-model-filter="vision">Multimodal Vision</button>
+          <button type="button" class="filter-pill" id="model-filter-audio" data-model-filter="audio">Native Audio/Video</button>
+          <button type="button" class="filter-pill" id="model-filter-1m" data-model-filter="1m">1M+ Context</button>
+          <button type="button" class="filter-pill" id="model-filter-thinking" data-model-filter="thinking">Adaptive Thinking</button>
+          <button type="button" class="filter-pill" id="model-filter-chinese" data-model-filter="chinese">Chinese Frontier</button>
+          <button type="button" class="filter-pill" id="model-filter-local" data-model-filter="local">Local / Open-Weight</button>
+        </div>
 
-# Or set directly
-export OPENAI_API_KEY="sk-..."
-
-# Non-interactive
-tcm setup --api-key YOUR_API_KEY
-</code></pre>
-        </details>
-      </div>
-    </section>
-
-    <section id="examples" class="section">
-      <div class="container">
-        <h2>Quick examples</h2>
-        <div class="cards grid-2">
-          <div class="card">
-            <h3>Herb lookup</h3>
-<pre><code>$ tcm "Tell me about 黄芪 (Astragalus) — properties, compounds, and clinical evidence"</code></pre>
-          </div>
-          <div class="card">
-            <h3>Formula analysis</h3>
-<pre><code>$ tcm "Analyze the composition of 四君子汤 using the 君臣佐使 framework"</code></pre>
-          </div>
-          <div class="card">
-            <h3>Syndrome differentiation</h3>
-<pre><code>$ tcm "Patient has fatigue, loose stools, poor appetite, pale tongue. What TCM syndrome?"</code></pre>
-          </div>
-          <div class="card">
-            <h3>Network pharmacology</h3>
-<pre><code>$ tcm "Build a network pharmacology analysis for 补中益气汤 against diabetes targets"</code></pre>
-          </div>
-          <div class="card">
-            <h3>Safety check</h3>
-<pre><code>$ tcm "Check interactions between 人参, 藜芦, and Warfarin"</code></pre>
-          </div>
-          <div class="card">
-            <h3>Data management</h3>
-<pre><code>$ tcm data pull tcmsp
-tcm data status</code></pre>
-          </div>
+        <!-- Editorial Models Ledger Table -->
+        <div class="ledger-table-wrap">
+          <table class="models-ledger-table" id="models-ledger-table" aria-label="Supported SOTA foundation models">
+            <thead>
+              <tr>
+                <th>Provider</th>
+                <th>Model Name</th>
+                <th>Model ID (Click to Launch)</th>
+                <th>Context</th>
+                <th>Modalities</th>
+                <th>TCM &amp; Pharmacology Strength</th>
+              </tr>
+            </thead>
+            <tbody id="models-ledger-tbody">
+              <!-- Populated by script.js (36 verified Nov 2026 models) -->
+            </tbody>
+          </table>
         </div>
       </div>
     </section>
 
-    <section id="features" class="section alt">
+    <!-- ==================================================================
+         SECTION 4: ARCHITECTURE, 45+ TOOLS, INSTALLATION & FAQ (#architecture)
+         ================================================================== -->
+    <section class="section-folio alt-surface" id="architecture">
       <div class="container">
-        <h2>Why tcm?</h2>
-        <div class="feature-grid">
-          <article>
-            <h3>30+ TCM research tools</h3>
-            <p>Herb lookup, formula analysis, syndrome differentiation, network pharmacology, safety checks, literature search, and more.</p>
-          </article>
-          <article>
-            <h3>LLM-powered reasoning</h3>
-            <p>Powered by leading LLMs (OpenAI GPT-4o, o3, and more). Plans multi-step research workflows, calls tools, and synthesizes findings.</p>
-          </article>
-          <article>
-            <h3>Bilingual</h3>
-            <p>Full support for Chinese (中文) and English terminology.</p>
-          </article>
-          <article>
-            <h3>10+ database APIs</h3>
-            <p>PubMed, TCMSP, UniProt, STRING, KEGG, ClinicalTrials.gov, Open Targets — no setup required.</p>
-          </article>
-          <article>
-            <h3>Research UX</h3>
-            <p>Interactive terminal with @mentions, slash commands, session export, and clipboard support.</p>
-          </article>
-          <article>
-            <h3>Open source</h3>
-            <p>MIT licensed. Contributions welcome.</p>
-          </article>
+        <div class="section-header-row">
+          <div>
+            <span class="folio-rubric" data-i18n="sec4Rubric">Folio IV · Autonomous ReAct Architecture &amp; 45+ Domain Tools</span>
+            <h2 class="section-title" data-i18n="sec4Title">Deterministic Biometrics + Multi-Step Tool Verification</h2>
+            <p class="section-subtitle" data-i18n="sec4Sub">
+              Every query traverses a grounded four-stage scientific loop across 15 domain modules and 10+ live biomedical knowledge bases — eliminating unverified dosage or target hallucinations.
+            </p>
+          </div>
+          <div class="vertical-seal-stamp" aria-hidden="true">格物致知</div>
+        </div>
+
+        <!-- Clean Horizontal 4-Stage Pipeline Schematic -->
+        <div class="pipeline-schematic" aria-label="Agent execution pipeline">
+          <div class="pipeline-stage">
+            <span class="pipeline-step-idx">STAGE 01 · MULTIMODAL INGEST</span>
+            <h3 class="pipeline-step-title">Optical, Acoustic &amp; Query</h3>
+            <p class="pipeline-step-desc">
+              Ingests tongue photography, decoction-piece macro images, woodblock PDFs, pulse/symptom descriptors, or natural-language research prompts in English or Chinese.
+            </p>
+          </div>
+          <div class="pipeline-stage">
+            <span class="pipeline-step-idx">STAGE 02 · BIOMETRIC PLANNER</span>
+            <h3 class="pipeline-step-title">CIE L*a*b* &amp; Task Graph</h3>
+            <p class="pipeline-step-desc">
+              Computes lingual chromatic coordinates &amp; somatotopy vectors, decomposes complex clinical questions into ordered sub-goals, and selects optimal domain tools.
+            </p>
+          </div>
+          <div class="pipeline-stage">
+            <span class="pipeline-step-idx">STAGE 03 · 45+ TOOLS &amp; 10+ APIS</span>
+            <h3 class="pipeline-step-title">Pharmacopoeia &amp; Bio-Graph</h3>
+            <p class="pipeline-step-desc">
+              Queries ChP monographs, TCMSP, PubChem, ChEMBL, UniProt, STRING, KEGG, Open Targets, PubMed, and ClinicalTrials.gov with deterministic Python execution.
+            </p>
+          </div>
+          <div class="pipeline-stage">
+            <span class="pipeline-step-idx">STAGE 04 · GROUNDED SYNTHESIS</span>
+            <h3 class="pipeline-step-title">Safety Gate &amp; Citation</h3>
+            <p class="pipeline-step-desc">
+              Enforces 十八反/十九畏, toxic herb decoction rules, pregnancy alerts, and CYP450 checks before returning cited bilingual conclusions and exportable reports.
+            </p>
+          </div>
+        </div>
+
+        <!-- 15 Tool Modules Directory + Terminal Plate -->
+        <div class="tools-catalog-layout">
+          <div class="modules-directory-grid" aria-label="15 TCM tool modules">
+            <div class="module-cell">
+              <div class="module-head"><span class="module-name">diagnostics</span><span class="module-count">4 tools</span></div>
+              <p class="module-fns">Tongue CIE L*a*b* colorimetry, herb slice vision ID, ancient prescription OCR, Four-Examinations fusion.</p>
+            </div>
+            <div class="module-cell">
+              <div class="module-head"><span class="module-name">herbs</span><span class="module-count">4 tools</span></div>
+              <p class="module-fns">ChP monograph lookup, Four Natures &amp; Five Flavors filter, Paozhi processing comparison, dosage bounds.</p>
+            </div>
+            <div class="module-cell">
+              <div class="module-head"><span class="module-name">formulas</span><span class="module-count">4 tools</span></div>
+              <p class="module-fns">君臣佐使 role decomposition, symptom-driven modification rules, classical posology conversion.</p>
+            </div>
+            <div class="module-cell">
+              <div class="module-head"><span class="module-name">syndromes</span><span class="module-count">3 tools</span></div>
+              <p class="module-fns">Eight-Principles (八纲), Zang-Fu, Six-Channel (六经), and Wei-Qi-Ying-Xue pattern differentiation.</p>
+            </div>
+            <div class="module-cell">
+              <div class="module-head"><span class="module-name">compounds</span><span class="module-count">3 tools</span></div>
+              <p class="module-fns">SMILES/InChIKey lookup, Oral Bioavailability (OB &ge; 30%), Lipinski/DL screening, RDKit descriptors.</p>
+            </div>
+            <div class="module-cell">
+              <div class="module-head"><span class="module-name">pharmacology</span><span class="module-count">4 tools</span></div>
+              <p class="module-fns">Herb &rarr; Compound &rarr; Target &rarr; KEGG/GO enrichment network construction &amp; hub-gene centrality.</p>
+            </div>
+            <div class="module-cell">
+              <div class="module-head"><span class="module-name">interactions</span><span class="module-count">3 tools</span></div>
+              <p class="module-fns">Herb–Drug CYP450/P-gp metabolism checks, anticoagulant/antiplatelet synergy, narrow-TI alerts.</p>
+            </div>
+            <div class="module-cell">
+              <div class="module-head"><span class="module-name">safety</span><span class="module-count">4 tools</span></div>
+              <p class="module-fns">十八反 Eighteen Incompatibilities, 十九畏 Nineteen Antagonisms, pregnancy &amp; hepatorenal screening.</p>
+            </div>
+            <div class="module-cell">
+              <div class="module-head"><span class="module-name">acupuncture</span><span class="module-count">3 tools</span></div>
+              <p class="module-fns">WHO 361 standard acupoint anatomy, needling depth/angle, synergistic point prescriptions.</p>
+            </div>
+            <div class="module-cell">
+              <div class="module-head"><span class="module-name">classics</span><span class="module-count">3 tools</span></div>
+              <p class="module-fns">Full-text clause retrieval across <em>Huangdi Neijing</em>, <em>Shanghan Lun</em>, <em>Jin Gui</em>, and <em>Bencao Gangmu</em>.</p>
+            </div>
+            <div class="module-cell">
+              <div class="module-head"><span class="module-name">meridians</span><span class="module-count">2 tools</span></div>
+              <p class="module-fns">12 Primary &amp; 8 Extraordinary vessel pathways, Zi-Wu Liu-Zhu (子午流注) chronobiology.</p>
+            </div>
+            <div class="module-cell">
+              <div class="module-head"><span class="module-name">literature</span><span class="module-count">3 tools</span></div>
+              <p class="module-fns">PubMed E-utilities RCT/meta-analysis search, ClinicalTrials.gov registry query, CONSORT-CHM grading.</p>
+            </div>
+            <div class="module-cell">
+              <div class="module-head"><span class="module-name">modern</span><span class="module-count">2 tools</span></div>
+              <p class="module-fns">ICD-11 Traditional Medicine chapter mapping, disease–syndrome–biomarker bridge.</p>
+            </div>
+            <div class="module-cell">
+              <div class="module-head"><span class="module-name">data_api</span><span class="module-count">2 tools</span></div>
+              <p class="module-fns">Live REST connectors for UniProt, STRING PPI, ChEMBL bioactivity, Open Targets, and KEGG.</p>
+            </div>
+            <div class="module-cell">
+              <div class="module-head"><span class="module-name">code</span><span class="module-count">2 tools</span></div>
+              <p class="module-fns">Sandboxed Python scientific computation for custom enrichment statistics, IC50 curves, and RDKit plots.</p>
+            </div>
+          </div>
+
+          <figure class="cli-terminal-plate" style="margin:0;">
+            <div class="specimen-box-header">
+              <span class="specimen-box-label">Terminal Repl · tcm-cli v0.2.0</span>
+              <span class="status-tag-ochre">Interactive REPL</span>
+            </div>
+            <img
+              src="./assets/tcm-cli.png"
+              alt="tcm-cli interactive terminal screenshot demonstrating natural language TCM planning and tool execution"
+              width="900"
+              height="560"
+              loading="lazy"
+            />
+            <p style="font-size:0.8rem;color:var(--ink-secondary);margin:0.75rem 0 0 0;">
+              Supports <code>@herb</code> mentions, <code>/model</code> &amp; <code>/lang</code> slash commands, image attachments (<code>-i</code>), and local Studio launch (<code>tcm studio</code>).
+            </p>
+          </figure>
         </div>
       </div>
     </section>
 
-    <section id="faq" class="section">
+    <!-- ==================================================================
+         INSTALLATION, DOCS & FAQ (#install)
+         ================================================================== -->
+    <section class="section-folio" id="install">
       <div class="container">
-        <h2>FAQ</h2>
-        <details>
-          <summary>What models does tcm-cli support?</summary>
-          <p>OpenAI GPT-4o by default. You can list and switch models via <code>tcm model list</code> and <code>tcm model set ...</code>.</p>
-        </details>
-        <details>
-          <summary>Do I need to download datasets?</summary>
-          <p>No. tcm works with remote APIs out of the box. Local datasets are optional and can speed up heavy analysis.</p>
-        </details>
-        <details>
-          <summary>Where do I report issues?</summary>
-          <p>Open an issue on GitHub: <a href="https://github.com/tigerneil/tcm-cli" target="_blank" rel="noopener">tigerneil/tcm-cli</a>.</p>
-        </details>
+        <div class="section-header-row">
+          <div>
+            <span class="folio-rubric" data-i18n="sec5Rubric">Colophon · Installation, Documentation &amp; FAQ</span>
+            <h2 class="section-title" data-i18n="sec5Title">Deploy in Seconds — Terminal CLI or Local Web Studio</h2>
+            <p class="section-subtitle" data-i18n="sec5Sub">
+              Requires Python 3.10+. Works out-of-the-box with remote biomedical APIs or completely air-gapped with local Ollama weights.
+            </p>
+          </div>
+          <div class="vertical-seal-stamp" aria-hidden="true">開卷有益</div>
+        </div>
+
+        <div class="install-ledger-grid">
+          <div class="install-spec-pane">
+            <div class="install-spec-head">
+              <h3 class="install-spec-title">1. Isolated CLI via pipx</h3>
+              <span class="status-tag-celadon">Recommended</span>
+            </div>
+            <p class="install-spec-desc">Installs <code>tcm</code> globally in a clean virtual environment and runs the interactive provider setup wizard.</p>
+            <div class="code-copy-strip">
+              <code id="inst-cmd-1">pipx install tcm-cli &amp;&amp; tcm setup</code>
+              <button type="button" class="cmd-copy-btn" id="inst-copy-1" data-copy-target="inst-cmd-1">Copy</button>
+            </div>
+          </div>
+
+          <div class="install-spec-pane">
+            <div class="install-spec-head">
+              <h3 class="install-spec-title">2. Full Scientific &amp; Studio Stack</h3>
+              <span class="status-tag-ochre">Extras: [all]</span>
+            </div>
+            <p class="install-spec-desc">Includes optional stacks: <code>[chemistry]</code> (RDKit), <code>[ml]</code>, <code>[analysis]</code> (NetworkX/SciPy), and local <code>tcm studio</code> server.</p>
+            <div class="code-copy-strip">
+              <code id="inst-cmd-2">pip install "tcm-cli[all]"</code>
+              <button type="button" class="cmd-copy-btn" id="inst-copy-2" data-copy-target="inst-cmd-2">Copy</button>
+            </div>
+          </div>
+
+          <div class="install-spec-pane">
+            <div class="install-spec-head">
+              <h3 class="install-spec-title">3. Launch Multimodal TCM Studio</h3>
+              <span class="status-tag-cinnabar">Web + API</span>
+            </div>
+            <p class="install-spec-desc">Starts the local Python clinical engine on port 8765 and connects live SOTA model credentials to the Studio UI.</p>
+            <div class="code-copy-strip">
+              <code id="inst-cmd-3">tcm studio --port 8765 --open</code>
+              <button type="button" class="cmd-copy-btn" id="inst-copy-3" data-copy-target="inst-cmd-3">Copy</button>
+            </div>
+          </div>
+
+          <div class="install-spec-pane">
+            <div class="install-spec-head">
+              <h3 class="install-spec-title">4. One-Line Shell Installer</h3>
+              <span class="mono" style="font-size:0.72rem;color:var(--ink-muted);">macOS · Linux · WSL</span>
+            </div>
+            <p class="install-spec-desc">Detects Python/uv/pipx automatically and configures shell completions in a single step.</p>
+            <div class="code-copy-strip">
+              <code id="inst-cmd-4">curl -fsSL https://raw.githubusercontent.com/tigerneil/tcm-cli/main/install.sh | bash</code>
+              <button type="button" class="cmd-copy-btn" id="inst-copy-4" data-copy-target="inst-cmd-4">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reference Documentation Links -->
+        <div class="docs-links-strip">
+          <div>
+            <strong style="font-family:var(--font-serif);font-size:1.15rem;">Technical Reference Monographs</strong>
+            <span style="display:block;font-size:0.84rem;color:var(--ink-secondary);">Detailed configuration guides for API keys, custom endpoints, model routing, and bilingual modes.</span>
+          </div>
+          <div class="doc-ref-links">
+            <a class="doc-ref-link" href="./PROVIDERS.md">PROVIDERS.md &rarr;</a>
+            <a class="doc-ref-link" href="./MODELS.md">MODELS.md &rarr;</a>
+            <a class="doc-ref-link" href="./LANGUAGE.md">LANGUAGE.md &rarr;</a>
+            <a class="doc-ref-link" href="./STUDIO.md">STUDIO.md &rarr;</a>
+            <a class="doc-ref-link" href="./studio.html">Interactive Studio &rarr;</a>
+          </div>
+        </div>
+
+        <!-- Editorial FAQ -->
+        <div class="faq-ledger" id="faq">
+          <details class="faq-item" open>
+            <summary>Can I use TCM Studio right in the browser without installing Python first?</summary>
+            <div class="faq-answer">
+              Yes. Clicking <a href="./studio.html" style="color:var(--accent-cinnabar);font-weight:600;">Launch TCM Studio</a> opens the standalone Interactive Browser Engine with real HTML5 Canvas CIE <em>L*a*b*</em> pixel colorimetry, clinical presets, force-directed network pharmacology graphs, Eighteen Incompatibilities &amp; CYP safety verification, and the interactive acupoint &amp; canon atlas. When you later run <code>tcm studio</code> locally, the exact same Studio UI automatically detects <code>/api/health</code> and upgrades to Live Python Backend Mode.
+            </div>
+          </details>
+          <details class="faq-item">
+            <summary>How does TCM Studio prevent LLM hallucinations on toxic dosages or herb incompatibilities?</summary>
+            <div class="faq-answer">
+              Dosages, Eighteen Incompatibilities (十八反), Nineteen Antagonisms (十九畏), pregnancy contraindications, toxic decoction rules (such as pre-decocting 制附子 30–60 minutes to hydrolyze diester aconitine), and CYP450 herb–drug interactions are enforced by deterministic Python &amp; browser rulesets grounded in the Chinese Pharmacopoeia (2025) — never left to unconstrained free-text generation.
+            </div>
+          </details>
+          <details class="faq-item">
+            <summary>Can hospital or academic teams run TCM Studio &amp; CLI completely offline for patient privacy?</summary>
+            <div class="faq-answer">
+              Yes. Configure <code>tcm model set ollama/medgemma:27b</code>, <code>ollama/huatuogpt-vision:7b</code>, or <code>ollama/qwen3:32b</code> (or any OpenAI-compatible local vLLM/SGLang endpoint) so tongue photographs, clinical notes, and prescription scans never leave your institutional network.
+            </div>
+          </details>
+        </div>
       </div>
     </section>
   </main>
 
+  <!-- ====================================================================
+       COLOPHON FOOTER
+       ==================================================================== -->
   <footer class="site-footer">
-    <div class="container row between wrap gap">
-      <p>© <span id="year"></span> TCM-CLI Contributors — MIT License</p>
-      <p>
-        <a href="https://github.com/tigerneil/tcm-cli" target="_blank" rel="noopener">GitHub</a>
-        <span class="sep">•</span>
-        <a href="https://pypi.org/project/tcm-cli/" target="_blank" rel="noopener">PyPI</a>
-        <span class="sep">•</span>
-        <a href="https://github.com/tigerneil/tcm-cli#readme" target="_blank" rel="noopener">Documentation</a>
-      </p>
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="brand-text-group">
+            <span class="brand-title">TCM Studio &amp; CLI</span>
+            <span class="brand-version">v0.2.0 · MIT License</span>
+          </div>
+          <p class="footer-disclaimer">
+            Research &amp; Educational Instrument Disclaimer: TCM Studio and <code>tcm-cli</code> are designed for computational pharmacognosy, systems pharmacology research, and classical medical education. Outputs do not constitute medical diagnosis or treatment advice; clinical prescriptions must always be supervised by a licensed practitioner.
+          </p>
+        </div>
+        <div class="footer-links-col">
+          <a href="./studio.html">Launch Studio</a>
+          <a href="#multimodal">Multimodal</a>
+          <a href="#models">35+ Models</a>
+          <a href="https://github.com/tigerneil/tcm-cli" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://pypi.org/project/tcm-cli/" target="_blank" rel="noopener">PyPI</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; <span id="footer-year">2026</span> TCM-CLI Contributors · Song Materia Medica &times; Swiss Precision</span>
+        <span>Built for Bilingual Reproducible TCM Science (EN / 中文)</span>
+      </div>
     </div>
   </footer>
 
-  <script src="/docs/script.js"></script>
+  <script src="./script.js"></script>
 </body>
 </html>

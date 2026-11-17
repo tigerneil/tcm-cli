@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tcm-cli"
-version = "0.1.4"
-description = "An autonomous agent for Traditional Chinese Medicine research and discovery"
+version = "0.2.0"
+description = "Multimodal TCM Studio & autonomous agent for Traditional Chinese Medicine research and clinical application"
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.9"
@@ -15,7 +15,11 @@ authors = [
 keywords = [
     "tcm",
     "traditional-chinese-medicine",
+    "multimodal",
+    "tcm-studio",
+    "tongue-diagnosis",
     "herbs",
+    "acupuncture",
     "pharmacology",
     "network-pharmacology",
     "bioinformatics",
@@ -25,7 +29,7 @@ keywords = [
     "cli",
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Healthcare Industry",
     "Intended Audience :: Education",
@@ -39,7 +43,9 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Topic :: Scientific/Engineering :: Medical Science Apps.",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Recognition",
     "Environment :: Console",
+    "Environment :: Web Environment",
     "Operating System :: OS Independent",
 ]
 dependencies = [
@@ -57,12 +63,15 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/tigerneil/tcm-cli"
+Homepage = "https://tigerneil.github.io/tcm-cli/"
 Repository = "https://github.com/tigerneil/tcm-cli"
-Documentation = "https://github.com/tigerneil/tcm-cli#readme"
+Documentation = "https://github.com/tigerneil/tcm-cli/tree/main/docs"
 "Bug Tracker" = "https://github.com/tigerneil/tcm-cli/issues"
 
 [project.optional-dependencies]
+vision = [
+    "pillow>=10.0",
+]
 chemistry = [
     "rdkit>=2023.03",
 ]
@@ -76,6 +85,7 @@ analysis = [
     "scipy>=1.10",
 ]
 all = [
+    "pillow>=10.0",
     "rdkit>=2023.03",
     "torch>=2.0",
     "transformers>=4.40",
@@ -96,6 +106,15 @@ tcm = "tcm.cli:entry"
 [tool.hatch.build.targets.wheel]
 packages = ["src/tcm"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"docs/index.html" = "tcm/studio/static/index.html"
+"docs/styles.css" = "tcm/studio/static/styles.css"
+"docs/script.js" = "tcm/studio/static/script.js"
+"docs/studio.html" = "tcm/studio/static/studio.html"
+"docs/studio.css" = "tcm/studio/static/studio.css"
+"docs/studio.js" = "tcm/studio/static/studio.js"
+"docs/assets" = "tcm/studio/static/assets"
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"
@@ -103,6 +122,7 @@ target-version = "py310"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 markers = [
     "e2e: end-to-end tests hitting real APIs",
 ]

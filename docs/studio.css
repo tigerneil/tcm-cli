@@ -1,0 +1,956 @@
+/* ==========================================================================
+   TCM Studio v0.2.0 — Multimodal Workbench Stylesheet (docs/studio.css)
+   Inherits core HSL tokens, grain & typography from ./styles.css
+   ========================================================================== */
+
+body.studio-body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top Instrument Header */
+.studio-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 300;
+  background: var(--header-backdrop);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.studio-topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 60px;
+  padding-inline: 1.25rem;
+}
+
+.studio-brand-cluster {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.back-folio-link {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-secondary);
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sharp);
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.back-folio-link:hover {
+  color: var(--ink-primary);
+  border-color: var(--border-strong);
+  background: var(--bg-sunken);
+}
+
+.studio-h1 {
+  font-family: var(--font-serif);
+  font-size: 1.32rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.studio-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.engine-status-readout {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 32px;
+  padding: 0 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.73rem;
+  font-weight: 600;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--accent-celadon);
+  white-space: nowrap;
+}
+
+.engine-status-readout.is-live {
+  background: var(--accent-celadon-soft);
+  border-color: var(--accent-celadon);
+  color: var(--accent-celadon);
+}
+
+.topbar-model-select {
+  height: 32px;
+  max-width: 210px;
+  padding: 0 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sharp);
+  color: var(--ink-primary);
+}
+
+/* Main Studio Shell: Left Workspace Rail + Active Stage */
+.studio-shell {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  min-height: calc(100vh - 61px);
+}
+
+.studio-rail {
+  background: var(--bg-sunken);
+  border-right: 1px solid var(--border-strong);
+  padding: 1.15rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.rail-section-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-muted);
+  padding: 0 0.55rem 0.55rem;
+  border-bottom: 1px solid var(--border-hairline);
+  margin-bottom: 0.55rem;
+}
+
+.rail-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.rail-ws-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  width: 100%;
+  padding: 0.72rem 0.75rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-left: 3px solid transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.rail-ws-btn:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border-hairline);
+  border-left-color: var(--border-strong);
+}
+
+.rail-ws-btn.is-active {
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+  border-left: 3px solid var(--accent-cinnabar);
+  box-shadow: var(--shadow-subtle);
+}
+
+.rail-ws-idx {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--accent-ochre);
+  letter-spacing: 0.06em;
+}
+
+.rail-ws-name {
+  font-family: var(--font-serif);
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--ink-primary);
+  line-height: 1.2;
+}
+
+.rail-ws-zh {
+  font-size: 0.74rem;
+  color: var(--ink-muted);
+}
+
+.rail-colophon-box {
+  border-top: 1px solid var(--border-hairline);
+  padding: 0.85rem 0.55rem 0;
+  font-size: 0.74rem;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}
+
+.rail-colophon-box code {
+  display: block;
+  margin-top: 0.35rem;
+  padding: 0.3rem 0.45rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hairline);
+  color: var(--accent-cinnabar);
+  font-size: 0.71rem;
+}
+
+@media (max-width: 1060px) {
+  .studio-shell {
+    grid-template-columns: 1fr;
+  }
+  .studio-rail {
+    border-right: none;
+    border-bottom: 1px solid var(--border-strong);
+    padding: 0.65rem 1rem;
+  }
+  .rail-section-label,
+  .rail-colophon-box {
+    display: none;
+  }
+  .rail-nav-list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+  }
+  .rail-ws-btn {
+    border-left: 1px solid transparent;
+    border-bottom: 2.5px solid transparent;
+    padding: 0.55rem 0.65rem;
+  }
+  .rail-ws-btn.is-active {
+    border-left-color: var(--border-strong);
+    border-bottom: 2.5px solid var(--accent-cinnabar);
+  }
+}
+
+@media (max-width: 680px) {
+  .rail-nav-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .topbar-model-select {
+    display: none;
+  }
+}
+
+/* Workspace Stage Container */
+.studio-stage {
+  padding: 1.5rem clamp(1rem, 2.5vw, 2.25rem) 3rem;
+  min-width: 0;
+}
+
+.ws-pane {
+  display: none;
+}
+
+.ws-pane.is-active {
+  display: block;
+  animation: folioFadeIn 180ms ease;
+}
+
+.ws-header-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1.35rem;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.ws-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.6rem, 2.4vw, 2.15rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0.15rem 0 0 0;
+}
+
+.ws-subtitle {
+  font-size: 0.88rem;
+  color: var(--ink-secondary);
+  margin: 0.25rem 0 0 0;
+}
+
+/* Sub-tab Strip */
+.subtab-strip {
+  display: inline-flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  margin-bottom: 1.25rem;
+}
+
+.subtab-btn {
+  padding: 0.52rem 0.95rem;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border-hairline);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.subtab-btn:last-child {
+  border-right: none;
+}
+
+.subtab-btn:hover {
+  color: var(--ink-primary);
+  background: var(--bg-sunken);
+}
+
+.subtab-btn.is-active {
+  background: var(--ink-primary);
+  color: var(--bg-canvas);
+}
+
+/* Two-Column Workbench Split */
+.workbench-split {
+  display: grid;
+  grid-template-columns: 1.02fr 0.98fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .workbench-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.folio-panel {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  padding: 1.25rem;
+}
+
+.folio-panel + .folio-panel {
+  margin-top: 1.15rem;
+}
+
+.panel-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.65rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.95rem;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.panel-heading {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Workspace 1: Multimodal Four-Examinations Lab
+   ========================================================================== */
+.canvas-dropzone {
+  position: relative;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-sunken);
+  overflow: hidden;
+}
+
+.canvas-dropzone.is-dragover {
+  border-color: var(--accent-cinnabar);
+  outline: 2px dashed var(--accent-cinnabar);
+  outline-offset: -6px;
+}
+
+#lab-specimen-canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: crosshair;
+}
+
+.canvas-probe-hud {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.48rem 0.75rem;
+  background: var(--bg-canvas);
+  border-top: 1px solid var(--border-hairline);
+  font-family: var(--font-mono);
+  font-size: 0.73rem;
+  color: var(--ink-secondary);
+}
+
+.lab-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  margin-top: 0.85rem;
+}
+
+.file-upload-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 34px;
+  padding: 0 0.85rem;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-strong);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.file-upload-label:hover {
+  border-color: var(--ink-primary);
+  background: var(--bg-sunken);
+}
+
+.checkbox-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--ink-secondary);
+  cursor: pointer;
+}
+
+.presets-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 560px) {
+  .presets-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.preset-specimen-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0.52rem 0.7rem;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-hairline);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.preset-specimen-btn:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-sunken);
+}
+
+.preset-specimen-btn.is-active {
+  border-color: var(--accent-cinnabar);
+  background: var(--accent-cinnabar-soft);
+}
+
+.preset-specimen-btn strong {
+  font-size: 0.8rem;
+  color: var(--ink-primary);
+}
+
+.preset-specimen-btn span {
+  font-size: 0.71rem;
+  color: var(--ink-muted);
+}
+
+/* Symptom Chips for Four-Examinations Fusion */
+.symptom-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.38rem;
+  margin-top: 0.55rem;
+}
+
+.symptom-chip {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.76rem;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-strong);
+  color: var(--ink-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.symptom-chip.is-selected {
+  background: var(--accent-celadon);
+  border-color: var(--accent-celadon);
+  color: var(--ink-on-accent);
+}
+
+/* Regional L*a*b* 4-Zone Readout Strip */
+.zone-lab-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 640px) {
+  .zone-lab-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.zone-lab-cell {
+  padding: 0.55rem 0.65rem;
+  background: var(--bg-sunken);
+  border: 1px solid var(--border-hairline);
+}
+
+.zone-lab-name {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+}
+
+.zone-lab-vals {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+  margin-top: 0.15rem;
+}
+
+.syndrome-rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.syndrome-rank-row {
+  padding: 0.65rem 0.8rem;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-hairline);
+  border-left: 3px solid var(--accent-ochre);
+}
+
+.syndrome-rank-row:first-child {
+  border-left-color: var(--accent-cinnabar);
+}
+
+.syndrome-rank-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.syndrome-conf {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--accent-cinnabar);
+}
+
+/* ==========================================================================
+   Workspace 2: Formula Composer & Network Pharmacology Graph
+   ========================================================================== */
+.pharma-layout {
+  display: grid;
+  grid-template-columns: 1.22fr 0.78fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .pharma-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.network-canvas-stage {
+  position: relative;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-sunken);
+}
+
+#pharma-network-canvas {
+  width: 100%;
+  height: 460px;
+  display: block;
+  cursor: grab;
+}
+
+#pharma-network-canvas:active {
+  cursor: grabbing;
+}
+
+.network-legend-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.55rem 0.85rem;
+  background: var(--bg-canvas);
+  border-top: 1px solid var(--border-hairline);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-secondary);
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+
+.node-inspector-card {
+  margin-top: 1rem;
+  padding: 0.95rem 1.1rem;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-strong);
+}
+
+/* Custom Formula Builder Controls */
+.builder-add-row {
+  display: grid;
+  grid-template-columns: 1fr 78px 92px auto;
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+}
+
+@media (max-width: 560px) {
+  .builder-add-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.builder-herb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 240px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+
+.builder-herb-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.42rem 0.65rem;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-hairline);
+  font-size: 0.82rem;
+}
+
+.herb-remove-btn {
+  background: transparent;
+  border: none;
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0.1rem 0.35rem;
+}
+
+.herb-remove-btn:hover {
+  color: var(--accent-cinnabar);
+}
+
+.rx-meds-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.38rem;
+  margin-block: 0.45rem 0.85rem;
+}
+
+.safety-alerts-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.safety-alert-item {
+  padding: 0.7rem 0.85rem;
+  font-size: 0.82rem;
+  border-left: 3px solid var(--accent-celadon);
+  background: var(--accent-celadon-soft);
+}
+
+.safety-alert-item.level-critical {
+  border-left-color: var(--accent-cinnabar);
+  background: var(--accent-cinnabar-soft);
+}
+
+.safety-alert-item.level-caution {
+  border-left-color: var(--accent-ochre);
+  background: var(--accent-ochre-soft);
+}
+
+/* ==========================================================================
+   Workspace 3: Materia Medica, Meridian Acupoints & Classics
+   ========================================================================== */
+.atlas-layout {
+  display: grid;
+  grid-template-columns: 0.92fr 1.08fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .atlas-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.meridian-svg-stage {
+  background: var(--bg-sunken);
+  border: 1px solid var(--border-hairline);
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.meridian-svg-stage svg {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+}
+
+.acupoint-node {
+  cursor: pointer;
+  transition: transform 150ms ease;
+}
+
+.acupoint-node circle {
+  transition: r 150ms ease, fill 150ms ease;
+}
+
+.acupoint-node:hover circle,
+.acupoint-node.is-active circle {
+  fill: var(--accent-cinnabar);
+  r: 6.5;
+}
+
+.atlas-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  max-height: 540px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.atlas-entry-row {
+  padding: 0.85rem 1rem;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-hairline);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.atlas-entry-row:hover,
+.atlas-entry-row.is-selected {
+  border-color: var(--accent-cinnabar);
+}
+
+.atlas-entry-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+/* ==========================================================================
+   Workspace 4: SOTA Agent Console & Model Router
+   ========================================================================== */
+.agent-console-frame {
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  display: flex;
+  flex-direction: column;
+}
+
+.agent-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1.15rem;
+  background: var(--bg-sunken);
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.agent-toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.agent-samples-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding: 0.75rem 1.15rem;
+  border-bottom: 1px solid var(--border-hairline);
+  background: var(--bg-canvas);
+}
+
+.sample-prompt-btn {
+  padding: 0.35rem 0.68rem;
+  font-size: 0.76rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  color: var(--ink-secondary);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.sample-prompt-btn:hover {
+  color: var(--ink-primary);
+  border-color: var(--accent-cinnabar);
+}
+
+.agent-transcript {
+  padding: 1.35rem;
+  min-height: 380px;
+  max-height: 580px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.agent-turn {
+  border: 1px solid var(--border-hairline);
+  background: var(--bg-canvas);
+  padding: 1rem 1.15rem;
+}
+
+.agent-turn.user-turn {
+  border-left: 3px solid var(--ink-primary);
+}
+
+.agent-turn.assistant-turn {
+  border-left: 3px solid var(--accent-cinnabar);
+}
+
+.turn-meta {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+  margin-bottom: 0.55rem;
+}
+
+.trace-steps-block {
+  margin-block: 0.65rem 0.9rem;
+  border: 1px solid var(--border-hairline);
+  background: var(--bg-sunken);
+}
+
+.trace-step-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.42rem 0.7rem;
+  border-bottom: 1px solid var(--border-hairline);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.trace-step-line:last-child {
+  border-bottom: none;
+}
+
+.synthesis-prose {
+  font-size: 0.91rem;
+  line-height: 1.65;
+  color: var(--ink-primary);
+}
+
+.synthesis-prose h4 {
+  font-family: var(--font-serif);
+  font-size: 1.18rem;
+  margin: 0.85rem 0 0.35rem 0;
+}
+
+.synthesis-prose ul {
+  margin: 0.35rem 0 0.65rem 1.2rem;
+  padding: 0;
+}
+
+.agent-composer {
+  border-top: 1px solid var(--border-strong);
+  padding: 0.9rem 1.15rem;
+  background: var(--bg-sunken);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.agent-attachment-preview {
+  display: none;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.65rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  width: fit-content;
+}
+
+.agent-attachment-preview.is-visible {
+  display: inline-flex;
+}
+
+.composer-input-row {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-end;
+}
+
+.agent-textarea {
+  flex: 1;
+  min-height: 54px;
+  max-height: 160px;
+  padding: 0.65rem 0.85rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sharp);
+  resize: vertical;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .composer-input-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

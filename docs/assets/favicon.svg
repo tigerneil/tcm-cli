@@ -1,4 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect x="8" y="8" width="48" height="48" rx="10" fill="#c8a85c"/>
-  <path d="M20 24h24M20 32h18M20 40h24" stroke="#0b0b0b" stroke-width="4" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="TCM Studio Seal">
+  <rect x="4" y="4" width="56" height="56" rx="6" fill="#bc3923"/>
+  <rect x="8.5" y="8.5" width="47" height="47" rx="3" fill="none" stroke="#f9f6f0" stroke-width="2.2" stroke-opacity="0.92"/>
+  <!-- Stylized Seal-Script 本 (Root / Canon) -->
+  <g stroke="#f9f6f0" stroke-width="3.4" stroke-linecap="square" stroke-linejoin="miter" fill="none">
+    <path d="M16 24H48"/>
+    <path d="M32 14V50"/>
+    <path d="M32 26L18 42"/>
+    <path d="M32 26L46 42"/>
+    <path d="M23 41H41"/>
+  </g>
 </svg>

@@ -27,6 +27,9 @@ _TOOL_MODULES = (
     "safety",
     "modern",
     "data_api",
+    "diagnostics",
+    "acupuncture",
+    "classics",
     "code",
 )
 

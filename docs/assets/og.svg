@@ -1,14 +1,48 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0b0b0b"/>
-      <stop offset="1" stop-color="#15151a"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="630" fill="url(#g)"/>
-  <rect x="80" y="120" width="120" height="120" rx="24" fill="#c8a85c"/>
-  <path d="M112 168h56M112 208h42M112 248h56" stroke="#0b0b0b" stroke-width="10" stroke-linecap="round"/>
-  <text x="240" y="180" font-family="-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif" font-size="64" fill="#e8eaed" font-weight="700">TCM CLI</text>
-  <text x="240" y="240" font-family="-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif" font-size="34" fill="#cfd3d7">Traditional Chinese Medicine research agent</text>
-  <text x="240" y="300" font-family="-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif" font-size="26" fill="#c6c9ce">Ask in natural language → plan, execute tools, validate, conclude.</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="TCM Studio &amp; CLI v0.2.0">
+  <rect width="1200" height="630" fill="#f9f6f0"/>
+  <!-- Song DynastyZhenglei Bencao Double Folio Frame -->
+  <rect x="36" y="36" width="1128" height="558" fill="none" stroke="#251e18" stroke-width="2" stroke-opacity="0.32"/>
+  <rect x="44" y="44" width="1112" height="542" fill="none" stroke="#251e18" stroke-width="0.8" stroke-opacity="0.22"/>
+  <!-- Corner registration marks -->
+  <path d="M36 72H52M72 36V52M1164 72H1148M1128 36V52M36 558H52M72 594V578M1164 558H1148M1128 594V578" stroke="#9f712d" stroke-width="1.5"/>
+
+  <!-- Cinnabar Scholar Seal -->
+  <g transform="translate(88, 92)">
+    <rect width="76" height="76" rx="6" fill="#bc3923"/>
+    <rect x="6" y="6" width="64" height="64" rx="3" fill="none" stroke="#f9f6f0" stroke-width="2"/>
+    <g stroke="#f9f6f0" stroke-width="3.8" stroke-linecap="square" fill="none">
+      <path d="M18 28H58"/>
+      <path d="M38 15V61"/>
+      <path d="M38 30L20 50"/>
+      <path d="M38 30L56 50"/>
+      <path d="M26 49H50"/>
+    </g>
+  </g>
+
+  <!-- Rubric Eyebrow -->
+  <text x="188" y="122" font-family="Georgia, 'Times New Roman', serif" font-size="16" letter-spacing="3.2" fill="#9f712d" font-weight="700">ZHENGLEI BENCAO × COMPUTATIONAL PHARMACOLOGY</text>
+  <text x="188" y="152" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="16" fill="#675c52">tcm-cli v0.2.0  ·  TCM Studio Web &amp; Terminal Engine</text>
+
+  <!-- Editorial Headline -->
+  <text x="88" y="258" font-family="Georgia, 'Times New Roman', serif" font-size="56" fill="#251e18" font-weight="600" letter-spacing="-0.8">Multimodal Traditional Chinese Medicine,</text>
+  <text x="88" y="326" font-family="Georgia, 'Times New Roman', serif" font-size="56" fill="#251e18" font-weight="600" letter-spacing="-0.8">from Classical Canon to Molecular Graph.</text>
+
+  <!-- Subtitle -->
+  <text x="88" y="392" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="23" fill="#675c52">Four-Examinations CIE L*a*b* vision &amp; pulse synthesis, 45+ pharmacology &amp; clinical safety tools,</text>
+  <text x="88" y="426" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="23" fill="#675c52">and unified routing across 35+ SOTA foundation models.</text>
+
+  <!-- Architectural Bottom Ledger -->
+  <line x1="88" y1="482" x2="1112" y2="482" stroke="#251e18" stroke-opacity="0.18" stroke-width="1"/>
+  <text x="88" y="526" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" fill="#bc3923" font-weight="600">$ tcm studio --open</text>
+  <text x="360" y="526" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" fill="#356352">● 45+ Domain Tools</text>
+  <text x="615" y="526" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" fill="#9f712d">◆ 35+ Frontier Models</text>
+  <text x="890" y="526" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" fill="#251e18">十八反 · CYP Safety</text>
+
+  <!-- Right Vertical Classical Watermark -->
+  <g fill="#251e18" fill-opacity="0.08" font-family="serif" font-size="34" font-weight="700">
+    <text x="1068" y="130">四</text>
+    <text x="1068" y="172">診</text>
+    <text x="1068" y="214">合</text>
+    <text x="1068" y="256">參</text>
+  </g>
 </svg>
